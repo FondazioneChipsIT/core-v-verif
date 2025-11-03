@@ -34,7 +34,7 @@ timeunit 1ns;
 timeprecision 100ps;
 
 //pragma attribute interface_tif partition_interface_xif
-import reset_vif_xrtl_pkg::*;
+//import reset_vif_xrtl_pkg::*;     RG: avoiding to import reset_vif_xrtl_pkg in which class is defined
 
     //--------------------------------------------------------------------
     // Parameters
@@ -46,13 +46,16 @@ import reset_vif_xrtl_pkg::*;
     //--------------------------------------------------------------------
     // HVL Object for Interface
     //--------------------------------------------------------------------
-    xrtl_reset_vif_c hvl_obj;
+    //xrtl_reset_vif_c hvl_obj;     RG: removing obj instantiation, no more needed
 
     //--------------------------------------------------------------------
     // Declarations
     //--------------------------------------------------------------------
     bit [31:0] ra_cnt_FF;
     bit        reset_D1_FF;
+    //RG: added xrtl_reset_vif_c class content. Class was previously defined in reset_vif_xrtl_pkg
+    event reset_asserted;
+    event reset_deasserted;
 
     function void assert_reset( input int assert_count = init_assert );
         ra_cnt_FF = assert_count;
@@ -87,11 +90,13 @@ import reset_vif_xrtl_pkg::*;
     //--------------------------------------------------------------------
    always @( posedge clk) begin
        reset_D1_FF <= reset;
-       if (  reset && !reset_D1_FF ) ->hvl_obj.reset_asserted;
+       //if (  reset && !reset_D1_FF ) ->hvl_obj.reset_asserted;    RG: class obj not used anymore
+       if (  reset && !reset_D1_FF ) ->reset_asserted;
        if ( ra_cnt_FF == 'd1 )  begin  // assert event on clock when reset
                                        // drops
           repeat (1+post_reset_delay) @( posedge clk );
-          ->hvl_obj.reset_deasserted;
+          //->hvl_obj.reset_deasserted;     RG: class obj not used anymore
+          ->reset_deasserted;
        end // if
    end // always
 
