@@ -41,6 +41,6 @@ if args.yaml_file == None:
 else:
    if os.path.isdir("{}".format(outdir)) == False:
      os.system("mkdir {}".format(outdir))
-   vopt_cmd = cmp.cmp_cmd(args.yaml_file, outdir, '', '', '')
-   if vopt_cmd != "":
-     os.system(vopt_cmd)
+   elab_cmd = cmp.cmp_cmd(args.yaml_file, outdir, '', '', '')
+   if elab_cmd != "":
+     os.system(elab_cmd)

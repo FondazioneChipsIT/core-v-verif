@@ -21,20 +21,25 @@ import os
 import yaml
 import re
 
-def cmp_cmd(yaml_file, outdir, opt, vopt_option, work):
+def cmp_cmd(yaml_file, outdir, opt, elab_option, work):
   with open(yaml_file, 'r') as yaml_top:
      sim_yaml = yaml.safe_load(yaml_top)
   
   
   for entry in sim_yaml: 
       if entry['tool'] == "questa":
-          cmd       = "vlog -sv"
-          vopt_cmd  = "vopt"
+          cmd_comp   = "vlog -sv"
+          cmd_elab   = "vopt"
           tool      = "questa"
       elif entry['tool'] == "vcs":
-          cmd       = "vcs -sverilog"
-          vopt_cmd  = ""
-          tool      = "vcs"
+          cmd_comp   = "vcs -sverilog"
+          cmd_elab   = ""
+          tool       = "vcs"
+      elif entry['tool'] == "xcelium":
+          cmd_comp    = "xrun -compile"
+          cmd_elab   = "xrun -elaborate"
+          tool       = "xcelium"
+          
       if 'compile' in entry:
         comp      = entry['compile']
       else: 
@@ -63,11 +68,35 @@ def cmp_cmd(yaml_file, outdir, opt, vopt_option, work):
       if 'svlog_source' in comp:
         src_list  = comp["svlog_source"]
         srcs      = src_list.split()
-        cmd       = "vlog -sv"
+
+        if tool == "questa":
+          cmd_comp  = "vlog -sv"
+
+        elif tool == "xcelium":
+          cmd_comp  = "xrun -compile"
+
+        elif tool == "vcs":
+          #TODO
+          print("TODO")
+        else:
+          print("[ERROR]: Invalid tool")
+           
       elif 'vlog_source' in comp:
-        cmd       = "vlog"
         src_list  = comp["vlog_source"]
-        srcs      = src_list.split()
+        srcs = [expand_env_vars(s) for s in src_list.split()]
+
+        if tool == "questa":
+          cmd_comp  = "vlog"
+
+        elif tool == "xcelium":
+          cmd_comp  = "xrun -compile"
+
+        elif tool == "vcs":
+          #TODO
+          print("TODO")
+        else:
+          print("[ERROR]: Invalid tool")
+
       else: 
         src_list  = ""
         srcs      = ""
@@ -76,22 +105,26 @@ def cmp_cmd(yaml_file, outdir, opt, vopt_option, work):
       ########################
       if 'svlog_flist' in comp:
         file_list = comp["svlog_flist"]
-        files     = file_list.split()
+        files = [expand_env_vars(f) for f in file_list.split()]
       else: 
         file_list = ""
         files     = ""
       ########################
-      ## get vopt options ##
+      ## get elab options ##
       ########################
       if 'top_entity' in entry:
         top_entity  = comp['top_entity']
       else: 
         top_entity = "top"
+
       if 'vopt_option' in comp:
-        vopt_option  += " "
-        vopt_option  += comp['vopt_option']
+        elab_option  += " "
+        elab_option  += comp['vopt_option']
+      elif 'elab_option' in comp:
+        elab_option += " "
+        elab_option += comp['elab_option']
       else: 
-        vopt_option += " "
+        elab_option += " "
       ########################
       ## run other YAML   ####
       ########################
@@ -103,7 +136,7 @@ def cmp_cmd(yaml_file, outdir, opt, vopt_option, work):
             path  = os.environ[var];
             y = re.sub('\${.*}', path, y)
             print(y)
-            cmp_cmd(y, outdir, opt, vopt_option, work_lib)
+            cmp_cmd(y, outdir, opt, elab_option, work_lib)
   
 
   #####################################
@@ -117,23 +150,45 @@ def cmp_cmd(yaml_file, outdir, opt, vopt_option, work):
   #####################################
   src_cmd = ""
   for s in srcs:
-    src_cmd += " -sv " + s
+    if tool == "questa":
+      src_cmd += " -sv " + s
+    else:
+      src_cmd += " " + s
 
   if tool == "questa":
-    compile_cmd = "{} {} {} {} -work {} -l {}/{}.log".format(cmd, opt, file_cmd, src_cmd, work_lib, outdir, "log")
-    vopt_cmd    = "{} {} -work {} {} -o opt".format(vopt_cmd, vopt_option, work_lib, top_entity)
+    compile_cmd = "{} {} {} {} -work {} -l {}/{}.log".format(cmd_comp, opt, file_cmd, src_cmd, work_lib, outdir, "log")
+    elab_cmd    = "{} {} -work {} {} -o opt".format(cmd_elab, elab_option, work_lib, top_entity)
   elif tool == "vcs":
-    compile_cmd = "{} {} {} {} -l {}/{}.log".format(cmd, opt, file_cmd, src_list, outdir, yaml_file)
-    vopt_cmd = ""
+    compile_cmd = "{} {} {} {} -l {}/{}.log".format(cmd_comp, opt, file_cmd, src_list, outdir, yaml_file)
+    elab_cmd = ""
+  elif tool == "xcelium":
+    if 'count_comp' in comp:
+      count_comp = comp['count_comp']
+      if str(count_comp) == "2":
+        compile_cmd     = "{} {} {} -work {} {} -logfile {}/xrun_compile.log".format(
+                          cmd_comp, opt, file_cmd, work_lib, src_cmd, outdir)
+      else:
+        compile_cmd     = "{} {} {} -reflib {} -work {} {} -logfile {}/xrun_compile.log".format(
+                          cmd_comp, opt, file_cmd, work_lib, work_lib, src_cmd, outdir)
+    else:
+      print("[ERROR]: No count_comp field in yaml")
+    
+
+    elab_cmd = "{} {} -reflib {} -work {} -top {} -logfile {}/elab.log".format(cmd_elab, elab_option, work_lib, work_lib, top_entity, outdir)
+
 
   print(yaml_file)
   if src_list == "" and file_cmd == "" and src_cmd == "":
-   return vopt_cmd
+   return elab_cmd
   else:
    print(compile_cmd)
    os.system(compile_cmd)
-   return vopt_cmd
+   return elab_cmd
 ## cmp_cmd
+
+def expand_env_vars(path):
+    return re.sub(r"\${(\w+)}", lambda m: os.environ.get(m.group(1), ""), path)
+
 
 def get_cmd_opt(yaml_file):
   with open(yaml_file, 'r') as yaml_top:
