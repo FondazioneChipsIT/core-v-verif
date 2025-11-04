@@ -196,11 +196,17 @@ def get_cmd_opt(yaml_file):
   
   for entry in sim_yaml: 
       if entry['tool'] == "questa":
-          cmd       = "vsim"
-          tool      = "questa"
+        cmd       = "vsim"
+        tool      = "questa"
+
       elif entry['tool'] == "vcs":
-          cmd       = "./vcs"
-          tool      = "vcs"
+        cmd       = "./vcs"
+        tool      = "vcs"
+
+      elif entry['tool'] == "xcelium":
+        cmd       = "xrun -r"
+        tool      = "xcelium"
+        
       if 'sim' in entry:
         sim     = entry['sim']
       else: 
@@ -212,11 +218,24 @@ def get_cmd_opt(yaml_file):
         sim_opt = ""
 
   sim_cmd_opt = ""
-  if tool == "questa":
-    sim_cmd_opt = "{} {}".format(cmd, sim_opt)
+  if tool in ("questa", "xcelium"):
+    sim_cmd_opt = f"{cmd} {sim_opt}"
     return sim_cmd_opt
-
-def run_test(test_name, seed, debug, batch, dump, stdout, outdir, vsim_opt):
+  
+def run_test(yaml_file, test_name, seed, debug, batch, dump, stdout, outdir, vsim_opt):
+   
+   #Recognize the used tool
+   with open(yaml_file, 'r') as yaml_top:
+     sim_yaml = yaml.safe_load(yaml_top)
+  
+  
+   for entry in sim_yaml: 
+      if entry['tool'] == "questa":
+          tool      = "questa"
+      elif entry['tool'] == "vcs":
+          tool       = "vcs"
+      elif entry['tool'] == "xcelium":
+          tool       = "xcelium"
 
    if outdir == None: 
       outdir = "output"
@@ -235,16 +254,30 @@ def run_test(test_name, seed, debug, batch, dump, stdout, outdir, vsim_opt):
       dump = 1 
    
    if batch == 1:
-     batchstr = "-c -do \"run -all\""
+     if tool == "questa":
+      batchstr = "-c -do \"run -all\""
+     elif tool == "xcelium":
+      batchstr = "-batch"
    else:
-     batchstr = "-visualizer"
+     if tool == "questa":
+      batchstr = "-visualizer"
+     elif tool == "xcelium":
+      batchstr = "-gui"
    
    if dump == 1:
-     wlfstr  = "-wlf {}/{}_{}.wlf".format(outdir, test_name, seed)
-     dumpstr = ""
+     if tool == "questa":
+      wlfstr  = "-wlf {}/{}_{}.wlf".format(outdir, test_name, seed)
+      dumpstr = ""
+     elif tool == "xcelium":
+      wlfstr = ""
+      dumpstr = "-input run_wave.tcl"
    else:
-     dumpstr = ""
-     wlfstr  = ""
+     if tool == "questa":
+      dumpstr = ""
+      wlfstr  = ""
+     elif tool == "xcelium":
+      dumpstr = "-input run.tcl"
+      wlfstr = ""
 
    if stdout == None:
        stdout = 1
@@ -257,4 +290,11 @@ def run_test(test_name, seed, debug, batch, dump, stdout, outdir, vsim_opt):
    if os.path.isdir("{}".format(outdir)) == False:
      os.system("mkdir {}".format(outdir))
    
-   os.system("{} {} {} -sv_seed {} +UVM_VERBOSITY={} +UVM_TESTNAME={} {} {}/{}_{}.log {}".format(vsim_opt,  batchstr, dumpstr, seed, debug, test_name, stdoutstr, outdir, test_name, seed, wlfstr))
+   if tool == "questa":
+    line = "{} {} {} -sv_seed {} +UVM_VERBOSITY={} +UVM_TESTNAME={} {} {}/{}_{}.log {}".format(vsim_opt,  batchstr, dumpstr, seed, debug, test_name, stdoutstr, outdir, test_name, seed, wlfstr)
+    print("[INFO] Simulation command:\n{}".format(line))
+    os.system(line)
+   elif tool == "xcelium":
+    line = "{} {} {} -seed {} +UVM_VERBOSITY={} +UVM_TESTNAME={} {} {}/{}_{}.log {}".format(vsim_opt,  batchstr, dumpstr, seed, debug, test_name, stdoutstr, outdir, test_name, seed, wlfstr)
+    print("[INFO] Simulation command:\n{}".format(line))
+    os.system(line)

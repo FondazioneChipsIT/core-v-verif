@@ -47,5 +47,5 @@ if args.test_name == None:
    option_ok = 0
 
 if option_ok == 1:
-  sim.run_test(args.test_name, args.seed, args.debug, args.batch, args.dump, args.stdout, args.outdir, cmd_opt )
+  sim.run_test(args.yaml_file, args.test_name, args.seed, args.debug, args.batch, args.dump, args.stdout, args.outdir, cmd_opt )
 
