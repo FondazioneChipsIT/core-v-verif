@@ -24,7 +24,11 @@
 //
 // ----------------------------------------------------------------------------
 
-interface xrtl_reset_vif ( input bit clk,
+//RG: adding the parameters also in the vif instance
+interface xrtl_reset_vif #( bit init_value=1'b1, 
+                            integer unsigned init_assert=50, 
+                            integer unsigned post_reset_delay=25)
+                        ( input bit clk,
                           output bit reset,
                           output bit reset_n,
                           output bit post_shutdown_phase );
@@ -33,29 +37,29 @@ interface xrtl_reset_vif ( input bit clk,
 timeunit 1ns;
 timeprecision 100ps;
 
-//pragma attribute interface_tif partition_interface_xif
-//import reset_vif_xrtl_pkg::*;     RG: avoiding to import reset_vif_xrtl_pkg in which class is defined
+`ifdef XCELIUM
+    //Xcelium: avoid the using of the class
+    event reset_asserted;
+    event reset_deasserted;
+`else
+    // Questasim: use the class
+    import reset_vif_xrtl_pkg::*;
+    xrtl_reset_vif_c hvl_obj;
+`endif
 
     //--------------------------------------------------------------------
     // Parameters
     //--------------------------------------------------------------------
-    parameter init_value = 1'b1;
+    //RG: modified due to the presence of parameters
+    /*parameter init_value = 1'b1;
     parameter init_assert = 50;
-    parameter post_reset_delay = 25;
-
-    //--------------------------------------------------------------------
-    // HVL Object for Interface
-    //--------------------------------------------------------------------
-    //xrtl_reset_vif_c hvl_obj;     RG: removing obj instantiation, no more needed
+    parameter post_reset_delay = 25;*/
 
     //--------------------------------------------------------------------
     // Declarations
     //--------------------------------------------------------------------
     bit [31:0] ra_cnt_FF;
     bit        reset_D1_FF;
-    //RG: added xrtl_reset_vif_c class content. Class was previously defined in reset_vif_xrtl_pkg
-    event reset_asserted;
-    event reset_deasserted;
 
     function void assert_reset( input int assert_count = init_assert );
         ra_cnt_FF = assert_count;
@@ -90,14 +94,22 @@ timeprecision 100ps;
     //--------------------------------------------------------------------
    always @( posedge clk) begin
        reset_D1_FF <= reset;
-       //if (  reset && !reset_D1_FF ) ->hvl_obj.reset_asserted;    RG: class obj not used anymore
-       if (  reset && !reset_D1_FF ) ->reset_asserted;
-       if ( ra_cnt_FF == 'd1 )  begin  // assert event on clock when reset
-                                       // drops
-          repeat (1+post_reset_delay) @( posedge clk );
-          //->hvl_obj.reset_deasserted;     RG: class obj not used anymore
-          ->reset_deasserted;
-       end // if
+
+`ifdef XCELIUM
+        // Xcelium: trigger eventi diretti
+        if (  reset && !reset_D1_FF ) ->reset_asserted;
+        if ( ra_cnt_FF == 'd1 ) begin
+            repeat (1+post_reset_delay) @( posedge clk );
+            ->reset_deasserted;
+        end
+`else
+        // QuestaSim: trigger eventi attraverso hvl_obj
+        if (  reset && !reset_D1_FF ) ->hvl_obj.reset_asserted;
+        if ( ra_cnt_FF == 'd1 ) begin
+            repeat (1+post_reset_delay) @( posedge clk );
+            ->hvl_obj.reset_deasserted;
+        end
+`endif       
    end // always
 
 endinterface : xrtl_reset_vif
