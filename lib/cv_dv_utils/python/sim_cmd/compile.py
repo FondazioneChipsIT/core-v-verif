@@ -89,7 +89,7 @@ else:
     #Branch the compilation depending on the tool
     if entry['tool'] == "questa":
         print("[INFO]: Starting compilation with Questasim...")
-        comp_cmd = f"vlog -sv {comp_opt} -f {filelist} -work {work_lib} -logfile {outdir}/questa_compile.log"
+        comp_cmd = f"vlog {comp_opt} -f {filelist} -work {work_lib} -logfile {outdir}/questa_compile.log"
         print("[INFO] Compilation command:\n{}".format(comp_cmd))
         os.system(comp_cmd)
 
@@ -115,7 +115,7 @@ else:
         if os.path.isfile("simv.daidir/.vcs.timestamp") == True:
           os.system("rm simv.daidir/.vcs.timestamp")
           
-        comp_cmd = f"vcs -sverilog -timescale=1ns/1ps -Mdir={work_lib} {comp_opt} -f {filelist} -l {outdir}/vcs_compile.log"
+        comp_cmd = f"vcs -Mdir={work_lib} {comp_opt} -f {filelist} -l {outdir}/vcs_compile.log"
         if comp_cmd != "vcs ":
           os.system(comp_cmd)
     else:
