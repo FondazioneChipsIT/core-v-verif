@@ -31,11 +31,18 @@ if args.db_file == None:
    option_ok = 0
 else:
     #check if the file exists
-    if os.path.isfile(f"{args.db_file}") == True:
-        db_file = args.db_file
+    if args.tool_name == "questa" or args.tool_name == "vcs":
+        if os.path.isfile(f"{args.db_file}") == True:
+            db_file = args.db_file
+        else:
+            print("[ERROR]: Inserted db file does not exist")
+            option_ok = 0
     else:
-        print("[ERROR]: Inserted db file does not exist")
-        option_ok = 0
+        if os.path.isdir(f"{args.db_file}") == True:
+            db_file = args.db_file
+        else:
+            print("[ERROR]: Inserted db file does not exist")
+            option_ok = 0       
 
 if option_ok == 1:
     if tool_name == "questa":
