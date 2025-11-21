@@ -17,19 +17,19 @@
 // limitations under the License.
 //[END OF HEADER]
 
-+incdir+${CORE_V_VERIF}/lib/cv_dv_utils/uvm/memory_partition
-+incdir+${CORE_V_VERIF}/lib/cv_dv_utils/uvm/reset_gen
-+incdir+${CORE_V_VERIF}/lib/cv_dv_utils/uvm/watchdog
-+incdir+${CORE_V_VERIF}/lib/cv_dv_utils/uvm/clock_gen
-+incdir+${CORE_V_VERIF}/lib/cv_dv_utils/uvm/unix_utils
-+incdir+${CORE_V_VERIF}/lib/cv_dv_utils/uvm/pulse_gen
-+incdir+${CORE_V_VERIF}/lib/cv_dv_utils/uvm/bp_gen
-+incdir+${CORE_V_VERIF}/lib/cv_dv_utils/uvm/generic_agent
-+incdir+${CORE_V_VERIF}/lib/cv_dv_utils/uvm/memory_rsp_model
-+incdir+${CORE_V_VERIF}/lib/cv_dv_utils/uvm/memory_rsp_model/axi2mem
-+incdir+${CORE_V_VERIF}/lib/cv_dv_utils/uvm/memory_shadow
-+incdir+${CORE_V_VERIF}/lib/cv_dv_utils/uvm/clock_mon
-+incdir+${CORE_V_VERIF}/lib/cv_dv_utils/uvm/perf_mon
++incdir+$CORE_V_VERIF/lib/cv_dv_utils/uvm/memory_partition
++incdir+$CORE_V_VERIF/lib/cv_dv_utils/uvm/reset_gen
++incdir+$CORE_V_VERIF/lib/cv_dv_utils/uvm/watchdog
++incdir+$CORE_V_VERIF/lib/cv_dv_utils/uvm/clock_gen
++incdir+$CORE_V_VERIF/lib/cv_dv_utils/uvm/unix_utils
++incdir+$CORE_V_VERIF/lib/cv_dv_utils/uvm/pulse_gen
++incdir+$CORE_V_VERIF/lib/cv_dv_utils/uvm/bp_gen
++incdir+$CORE_V_VERIF/lib/cv_dv_utils/uvm/generic_agent
++incdir+$CORE_V_VERIF/lib/cv_dv_utils/uvm/memory_rsp_model
++incdir+$CORE_V_VERIF/lib/cv_dv_utils/uvm/memory_rsp_model/axi2mem
++incdir+$CORE_V_VERIF/lib/cv_dv_utils/uvm/memory_shadow
++incdir+$CORE_V_VERIF/lib/cv_dv_utils/uvm/clock_mon
++incdir+$CORE_V_VERIF/lib/cv_dv_utils/uvm/perf_mon
 
 ${CORE_V_VERIF}/lib/cv_dv_utils/uvm/memory_partition/memory_partitions_pkg.sv
 ${CORE_V_VERIF}/lib/cv_dv_utils/uvm/reset_gen/reset_vif_xrtl_pkg.sv
@@ -44,7 +44,6 @@ ${CORE_V_VERIF}/lib/cv_dv_utils/uvm/pulse_gen/pulse_if.sv
 ${CORE_V_VERIF}/lib/cv_dv_utils/uvm/pulse_gen/pulse_gen_pkg.sv
 ${CORE_V_VERIF}/lib/cv_dv_utils/uvm/bp_gen/bp_vif_xrtl_pkg.sv
 ${CORE_V_VERIF}/lib/cv_dv_utils/uvm/bp_gen/bp_driver_pkg.sv
-${CORE_V_VERIF}/lib/cv_dv_utils/uvm/bp_gen/bp_virtual_sequence.svh
 ${CORE_V_VERIF}/lib/cv_dv_utils/uvm/bp_gen/bp_vif.sv
 ${CORE_V_VERIF}/lib/cv_dv_utils/uvm/generic_agent/generic_agent_pkg.sv
 ${CORE_V_VERIF}/lib/cv_dv_utils/uvm/generic_agent/generic_if.sv
