@@ -62,9 +62,7 @@ else:
     #refresh work library
     if os.path.isdir("{}".format(work_lib)) == True:
       print("[INFO] Eliminating existing worklib {}...".format(work_lib))
-      os.system("rm -r {}".format(outdir))
-      print("[INFO] Creating new worklib {}...".format(work_lib))
-      os.system("mkdir {}".format(outdir))
+      os.system("rm -r {}".format(work_lib))
 
     if 'filelist' in comp:
       filelist  = comp['filelist']
