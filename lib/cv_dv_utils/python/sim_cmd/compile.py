@@ -66,6 +66,13 @@ else:
 
     if 'filelist' in comp:
       filelist  = comp['filelist']
+      #Generating the filelist with Bender dependencies
+      print("[INFO]: Updating Bender dependencies...")
+      os.system("bender update")
+      print("[INFO]: Creating Bender filelist...")
+      bender_filelist=f"bender script flist-plus -t cv64a60ax_cvfpu_uvm -t cvfpu_uvm > {filelist}"
+      os.system(bender_filelist)  
+      
     else:
       filelist = ""    
 
@@ -84,11 +91,12 @@ else:
     else:
       top = "top"
 
+  
     #Branch the compilation depending on the tool
     if entry['tool'] == "questa":
         print("[INFO]: Starting compilation with Questasim...")
         comp_cmd = f"vlog {comp_opt} -f {filelist} -work {work_lib} -logfile {outdir}/questa_compile.log"
-        print("[INFO] Compilation command:\n{}".format(comp_cmd))
+        print("[INFO]: Compilation command:\n{}".format(comp_cmd))
         os.system(comp_cmd)
 
         print("[INFO]: Starting elaboration with Questasim...")
