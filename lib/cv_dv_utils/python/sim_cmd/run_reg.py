@@ -33,6 +33,7 @@ parser = argparse.ArgumentParser(description='Run Regression')
 parser.add_argument('--yaml'       ,dest='yaml_file', type=str, help='Top YAML with compile and simulation options')
 parser.add_argument('--reg_list'   ,dest='reglist'   , type=str, help='file that contains the regression list, the number of seeds and a default seed')
 parser.add_argument('--nthreads'   ,dest='nthreads'  , type=int, help='Number of test run at the same time: default 2')
+parser.add_argument('--cover'    , dest='cover',     type=int, help='1: generate coverage file, 0: nothing is done, cover option are passed from yaml file ') #FIXME
 parser.add_argument('--outdir'     , dest='outdir'    , type=str, help='output directory: default regression')
 args = parser.parse_args()
 

@@ -29,6 +29,7 @@ parser.add_argument('--seed'     , dest='seed',      type=int, help='random seed
 parser.add_argument('--debug'    , dest='debug',     type=str, help='UVM_LOW/MEDIUM/HIGH/FULL/DEBUG, default LOW')
 parser.add_argument('--batch'    , dest='batch',     type=int, help='1: batch mode, 0:gui default, 1')
 parser.add_argument('--dump'     , dest='dump',      type=int, help='1: all signals are logged, 0: nothing is looged, default 1') #FIXME
+parser.add_argument('--cover'    , dest='cover',     type=int, help='1: generate coverage file, 0: nothing is done, cover option are passed from yaml file ') #FIXME
 parser.add_argument('--stdout'   , dest='stdout', type=int, help='1: stdout 0: nostdout')
 parser.add_argument('--outdir'   , dest='outdir', type=str, help='output dirctory default "output"')
 
