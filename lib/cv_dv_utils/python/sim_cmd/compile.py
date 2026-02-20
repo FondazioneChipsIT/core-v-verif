@@ -120,8 +120,8 @@ else:
         #removing existing timestamp for recompilation
         if os.path.isfile("simv.daidir/.vcs.timestamp") == True:
           os.system("rm simv.daidir/.vcs.timestamp")
-          
-        comp_cmd = f"vcs -Mdir={work_lib} {comp_opt} -f {filelist} -l {outdir}/vcs_compile.log"
+        
+        comp_cmd = f"vcs -Mdir={work_lib} {comp_opt} -f {filelist} -top {top} -l {outdir}/vcs_compile.log"
         if comp_cmd != "vcs ":
           os.system(comp_cmd)
     else:
