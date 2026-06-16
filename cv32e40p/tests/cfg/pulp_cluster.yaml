@@ -20,4 +20,4 @@ ovpsim: >
 #    --trace --tracechange --traceshowicount --tracemode --monitornets
 cv_sw_march: rv32imc_zicsr_zifencei_xcvhwlp_xcvmem_xcvmac_xcvbi_xcvalu_xcvsimd_xcvbitmanip_xcvelw
 cflags: >
-    -DPULP -DCLUSTER
+    -DPULP -DCLUSTER -DCOREV_PULP
