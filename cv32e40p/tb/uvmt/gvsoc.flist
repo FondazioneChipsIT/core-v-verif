@@ -1,0 +1,10 @@
+
+// RVVI Infrastructure
+${CORE_V_VERIF}/vendor_lib/gvsoc_rvvi/RVVI/source/host/rvvi/rvviApiPkg.sv
+${CORE_V_VERIF}/vendor_lib/gvsoc_rvvi/RVVI/source/host/rvvi/rvviTrace.sv
+
+// RVVI Sync Bridge (open-source DPI bridge)
+-f ${DV_UVMA_RVVI_PATH}/uvma_rvvi_pkg.flist
+
+// GVSOC Wrapper
+${TBSRC_HOME}/uvmt/uvmt_cv32e40p_gvsoc_wrap.sv

@@ -1,0 +1,4 @@
+[submodule "vendor_lib/gvsoc_rvvi"]
+	path = vendor_lib/gvsoc_rvvi
+	url = https://github.com/marpac3/gvsoc_rvvi.git
+	branch = main
