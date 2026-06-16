@@ -48,9 +48,13 @@
 
 
 #ifndef ZFINX
-#define MAGIC_NUMBER 0x259d
+  #ifdef COREV_PULP
+    #define MAGIC_NUMBER 0x259d  /* PULP: some CoreV2 encodings are legal, not IIE */
+  #else
+    #define MAGIC_NUMBER 0x25a3  /* default: all CoreV2 encodings are IIE (+6) */
+  #endif
 #else
-#define MAGIC_NUMBER 0x259a
+  #define MAGIC_NUMBER 0x259a
 #endif
 
 test_results:

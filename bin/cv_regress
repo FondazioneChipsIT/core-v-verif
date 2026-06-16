@@ -152,7 +152,10 @@ def read_file(args, file, f_idx=0):
             test.set_cov()
         if args.make:
             test.sub_make(args.make)
-        if args.iss != None:
+        # Apply --iss only when the yaml did not explicitly set iss for this
+        # test: command-line acts as a default, not a forced override, so
+        # yaml tests can opt out of ISS comparison with `iss: 0`.
+        if args.iss != None and str(t.get('iss', cv_regression.DEFAULT_ISS)) == cv_regression.DEFAULT_ISS:
             test.iss = args.iss
         if args.cfg:
             try:

@@ -72,7 +72,7 @@ incr_test_counts () {
 
 {% for b in unique_builds.values() %}
 # Build:{{b.name}} {{b.description}}
-{% set cmd = b.cmd + ' CV_CORE=' + project + ' CFG=' + b.cfg + ' SIMULATOR=' + b.simulator + ' USE_ISS=' + regress_macros.yesorno(b.iss) + ' COV=' + regress_macros.yesorno(b.cov) + ' ' + regress_macros.cv_results(results) + ' ' + makeargs %}
+{% set cmd = b.cmd + ' CV_CORE=' + project + ' CFG=' + b.cfg + ' SIMULATOR=' + b.simulator + ' ' + regress_macros.iss_flags(b.iss) + ' COV=' + regress_macros.yesorno(b.cov) + ' ' + regress_macros.cv_results(results) + ' ' + makeargs %}
 echo "{{session}}: Running build: [cd {{b.abs_dir}} && {{cmd}}]"
 pushd {{b.abs_dir}} > /dev/null
 {{cmd}}
@@ -110,7 +110,7 @@ popd > /dev/null
 {% set test_cfg_path = test_cfg_list|join("__") %}
 
 # --> Test (Index: {{run_index}}): {{t.cmd}} : {{t.description}}
-{% set cmd = test_cmd + ' CV_CORE=' + project + ' CFG=' + r.builds[build].cfg + ' ' + toolchain|upper + '=1 SIMULATOR=' + t.simulator + ' COMP=0 USE_ISS=' + regress_macros.yesorno(t.iss) + ' COV=' + regress_macros.yesorno(t.cov) + ' SEED=random GEN_START_INDEX=' + run_index|string + ' RUN_INDEX=' + run_index|string + ' TEST_CFG_FILE=\"' + test_cfg + '\" ' + regress_macros.cv_results(results) + ' ' + makeargs %}
+{% set cmd = test_cmd + ' CV_CORE=' + project + ' CFG=' + r.builds[build].cfg + ' ' + toolchain|upper + '=1 SIMULATOR=' + t.simulator + ' COMP=0 ' + regress_macros.iss_flags(t.iss) + ' COV=' + regress_macros.yesorno(t.cov) + ' SEED=random GEN_START_INDEX=' + run_index|string + ' RUN_INDEX=' + run_index|string + ' TEST_CFG_FILE=\"' + test_cfg + '\" ' + regress_macros.cv_results(results) + ' ' + makeargs %}
 echo "{{session}}: Running test [cd {{t.abs_dir}} && {{cmd}}]"
 pushd {{t.abs_dir}} > /dev/null
 {{cmd}} >& /dev/null;
