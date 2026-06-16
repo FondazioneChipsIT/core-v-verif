@@ -145,16 +145,27 @@ endif
 VLOG_FLAGS += +define+$(CV_CORE_UC)_CORE_LOG
 VLOG_FLAGS += +define+UVM
 ifeq ($(call IS_YES,$(USE_ISS)),YES)
-VLOG_FLAGS += +define+USE_ISS
-VLOG_FLAGS += +define+USE_IMPERASDV
-VLOG_FILE_LIST_IDV = -f $(DV_UVMT_PATH)/imperas_dv.flist
-ifeq ($(call IS_YES,$(COV)),YES)
-VLOG_FLAGS += +define+IMPERAS_COV
-endif
+  VLOG_FLAGS += +define+USE_ISS
+  ifeq ($(ISS),GVSOC)
+    VLOG_FLAGS += +define+USE_GVSOC
+    VLOG_FILE_LIST_IDV = -f $(DV_UVMT_PATH)/gvsoc.flist
+    ISS_MODEL = $(GVSOC_RVVI_MODEL)
+  else
+    VLOG_FLAGS += +define+USE_IMPERASDV
+    VLOG_FILE_LIST_IDV = -f $(DV_UVMT_PATH)/imperas_dv.flist
+    ISS_MODEL = $(IMPERAS_DV_MODEL)
+  endif
+  ifeq ($(call IS_YES,$(COV)),YES)
+    VLOG_FLAGS += +define+IMPERAS_COV
+  endif
 endif
 ifeq ($(call IS_YES,$(COV)),YES)
 VLOG_FLAGS += -covermultiuserenv
 endif
+
+# Propagate USER_COMPILE_FLAGS (match xrun.mk behavior) to allow ad-hoc +define+ on
+# the make command line, e.g. USER_COMPILE_FLAGS="+define+OPT_A_BATCH_DPI".
+VLOG_FLAGS += $(USER_COMPILE_FLAGS)
 
 ###############################################################################
 # VOPT (Optimization)
@@ -185,14 +196,19 @@ VSIM_SCRIPT_DIR	   = $(abspath $(MAKE_PATH)/../tools/vsim)
 VSIM_UVM_ARGS      = +incdir+$(UVM_HOME)/src $(UVM_HOME)/src/uvm_pkg.sv
 
 ifeq ($(call IS_YES,$(USE_ISS)),YES)
-VSIM_FLAGS += +USE_ISS
-VSIM_FLAGS += +USE_IMPERASDV
-VSIM_FLAGS += -sv_lib $(basename $(IMPERAS_DV_MODEL))
-ifeq ($(call IS_YES,$(COV)),YES)
-VSIM_FLAGS += +IDV_TRACE2COV=1
-endif
+  VSIM_FLAGS += +USE_ISS
+  ifeq ($(ISS),GVSOC)
+    VSIM_FLAGS += +USE_GVSOC
+    VSIM_FLAGS += -sv_lib $(basename $(GVSOC_RVVI_MODEL))
+  else
+    VSIM_FLAGS += +USE_IMPERASDV
+    VSIM_FLAGS += -sv_lib $(basename $(IMPERAS_DV_MODEL))
+  endif
+  ifeq ($(call IS_YES,$(COV)),YES)
+    VSIM_FLAGS += +IDV_TRACE2COV=1
+  endif
 else
-VSIM_FLAGS += +DISABLE_OVPSIM
+  VSIM_FLAGS += +DISABLE_OVPSIM
 endif
 
 ifeq ($(call IS_YES,$(TEST_DISABLE_ALL_CSR_CHECKS)),YES)
@@ -308,18 +324,7 @@ endif
 # Check simulation log
 #ifeq ($(call IS_YES,$(CHECK_SIM_RESULT)),YES) OR ifeq ($(call IS_YES,$(COV)),YES)
 ifneq ($(filter YES, $(call IS_YES,$(CHECK_SIM_RESULT)) $(call IS_YES,$(COV))),)
-POST_TEST = \
-	@if grep -q "Errors:\s\+0" $(RUN_DIR)/vsim-$(VSIM_TEST).log; then \
-        if grep -q "SIMULATION PASSED" $(RUN_DIR)/vsim-$(VSIM_TEST).log; then \
-            exit 0; \
-        else \
-            $(COV_TEST) \
-            exit 1; \
-        fi \
-	else \
-		$(COV_TEST) \
-		exit 1; \
-	fi
+POST_TEST = if grep -q "Errors: 0" $(RUN_DIR)/vsim-$(VSIM_TEST).log && grep -q "SIMULATION PASSED" $(RUN_DIR)/vsim-$(VSIM_TEST).log; then exit 0; else exit 1; fi
 endif
 
 ################################################################################
@@ -630,6 +635,10 @@ comp: opt
 
 RUN_DIR = $(abspath $(SIM_RUN_RESULTS))
 
+# Prefix for the vsim run command line. Set to "-" to ignore vsim exit code
+# (useful when POST_TEST does log-based pass/fail detection instead).
+VSIM_RUN_PREFIX ?=
+
 # Target to run VSIM (i.e. run the simulation)
 run: $(VSIM_RUN_PREREQ) gen_ovpsim_ic
 	@echo "$(BANNER)"
@@ -638,10 +647,11 @@ run: $(VSIM_RUN_PREREQ) gen_ovpsim_ic
 	@echo "$(BANNER)"
 	mkdir -p $(RUN_DIR) && \
 	cd $(RUN_DIR) && \
-		$(VMAP) work $(SIM_CFG_RESULTS)/work
+		$(VMAP) work $(SIM_CFG_RESULTS)/work && \
 	cd $(RUN_DIR) && \
 	export IMPERAS_TOOLS=$(SIM_RUN_RESULTS)/ovpsim.ic && \
 	export IMPERAS_QUEUE_LICENSE=1 && \
+	export GVSOC_CONFIG=$(GVSOC_CONFIG) && \
 		$(VSIM) \
 			-work $(VWORK) \
 			$(VSIM_WAVES_FLAGS) \
@@ -654,7 +664,7 @@ run: $(VSIM_RUN_PREREQ) gen_ovpsim_ic
 			$(TEST_PLUSARGS) \
 			$(TEST_CFG_FILE_PLUSARGS)
 	@echo "* Log: $(RUN_DIR)/vsim-$(VSIM_TEST).log"
-	$(POST_TEST)
+	@$(POST_TEST)
 
 
 ################################################################################

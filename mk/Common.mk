@@ -172,6 +172,31 @@ OVP_MODEL_DPI   = $(DV_OVPM_MODEL)/bin/Linux64/imperas_CV32.dpi.so
 #OVP_CTRL_FILE   = $(DV_OVPM_DESIGN)/riscv_CV32E40P.ic
 
 ###############################################################################
+# GVSOC Instruction Set Simulator
+
+GVSOC_RVVI_HOME  = $(CORE_V_VERIF)/vendor_lib/gvsoc_rvvi
+# Select the correct GVSOC bridge .so based on ZFINX config.
+# libgvsoc_rvvi_zfinx.so is compiled with ISS_SINGLE_REGFILE=1 to match the ZFINX
+# ISS model struct layout (fregs[] removed). Without this, gvsoc_engine.cpp accesses
+# exec.current_insn and regfile fields at wrong offsets -> wrong PC / register values.
+GVSOC_RVVI_MODEL = $(GVSOC_RVVI_HOME)/$(if $(filter True,$(GVSOC_ZFINX)),libgvsoc_rvvi_zfinx.so,libgvsoc_rvvi.so)
+export GVSOC_CONFIG ?= $(GVSOC_RVVI_HOME)/gvsoc_config_$(CFG).json
+
+# Derive CV32E40P core configuration parameters for GVSOC from the CFG name.
+# CFG_LC patterns: "pulp" -> COREV_PULP, "fpu" -> FPU, "zfinx" -> ZFINX,
+#                  "cluster" -> COREV_CLUSTER.
+# These map to --parameter flags passed to gvrun at runtime.
+# Note: "no_pulp" and "default" must NOT enable COREV_PULP.
+# Filter out "no_pulp" before checking for "pulp" substring.
+_cfg_no_nopulp := $(subst no_pulp,,$(CFG_LC))
+GVSOC_COREV_PULP    := $(if $(findstring pulp,$(_cfg_no_nopulp)),True,False)
+GVSOC_FPU           := $(if $(findstring fpu,$(CFG_LC)),True,False)
+GVSOC_ZFINX         := $(if $(findstring zfinx,$(CFG_LC)),True,False)
+GVSOC_COREV_CLUSTER := $(if $(findstring cluster,$(CFG_LC)),True,False)
+# NUM_MHPMCOUNTERS: extract from CFG name "num_mhpmcounter_N" or default to 1.
+GVSOC_NUM_MHPMCOUNTERS := $(or $(patsubst num_mhpmcounter_%,%,$(filter num_mhpmcounter_%,$(CFG_LC))),1)
+
+###############################################################################
 # Imperas OVPsim Instruction Set Simulator
 #IMPERAS_DV_MODEL = $(CORE_V_VERIF)/vendor_lib/ImperasDV/lib/Linux64/ImperasLib/imperas.com/verification/riscv/1.0/model.so
 IMPERAS_DV_MODEL = $(IMPERAS_HOME)/lib/$(IMPERAS_ARCH)/ImperasLib/imperas.com/verification/riscv/1.0/model.so

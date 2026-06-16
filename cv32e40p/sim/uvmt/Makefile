@@ -52,3 +52,85 @@ DPI_DASM_SPIKE_REPO  ?= https://github.com/riscv/riscv-isa-sim.git
 
 include ../ExternalRepos.mk
 include $(CORE_V_VERIF)/mk/uvmt/uvmt.mk
+
+
+# --- GVSOC: common variables (GVSOC_TRACE and GVSOC DPI modes) ---
+# GVSOC_RVVI_HOME, GVSOC_COREV_PULP, GVSOC_FPU, GVSOC_ZFINX, GVSOC_CONFIG
+# are defined in mk/Common.mk.
+GVSOC_ELF := $(SIM_TEST_PROGRAM_RESULTS)/$(TEST_PROGRAM)$(OPT_RUN_INDEX_SUFFIX).elf
+
+# --- ISS=GVSOC_TRACE: offline trace comparison ---
+# RTL sim -> GVSOC standalone sim -> compare_traces.py
+ifeq ($(ISS),GVSOC_TRACE)
+
+SIM_TRACE     ?= $(SIM_RUN_RESULTS)/trace_core.log
+GVSOC_TRACE   ?= $(GVSOC_RVVI_HOME)/trace_$(TEST)_$(CFG).log
+COMPARE_TRACE ?= $(CORE_V_VERIF)/bin/compare_traces.py
+
+test: generate_gvsoc_config run_gvsoc compare_traces
+
+generate_gvsoc_config:
+	@echo "--- Generating GVSOC config for trace mode ---"
+	$(MAKE) -C $(GVSOC_RVVI_HOME) config \
+		BINARY=$(GVSOC_ELF) \
+		COREV_PULP=$(GVSOC_COREV_PULP) \
+		FPU=$(GVSOC_FPU) \
+		ZFINX=$(GVSOC_ZFINX) \
+		COREV_CLUSTER=$(GVSOC_COREV_CLUSTER) \
+		NUM_MHPMCOUNTERS=$(GVSOC_NUM_MHPMCOUNTERS)
+
+run_gvsoc:
+	@echo "--- Running GVSOC standalone ---"
+	$(MAKE) -C $(GVSOC_RVVI_HOME) trace \
+		BINARY=$(GVSOC_ELF) \
+		COREV_PULP=$(GVSOC_COREV_PULP) \
+		FPU=$(GVSOC_FPU) \
+		ZFINX=$(GVSOC_ZFINX) \
+		COREV_CLUSTER=$(GVSOC_COREV_CLUSTER) \
+		TRACE=$(GVSOC_TRACE)
+
+compare_traces:
+	@echo "--- Comparing RTL vs GVSOC traces ---"
+	$(COMPARE_TRACE) $(SIM_TRACE) $(GVSOC_TRACE)
+endif
+
+# --- ISS=GVSOC: DPI co-simulation (step-n-compare in-process) ---
+# Generates per-CFG config, then runs Questa with libgvsoc_rvvi.so.
+ifeq ($(ISS),GVSOC)
+
+# vpi_control(vpiFinish) causes vsim to return non-zero exit code (215).
+# Ignore vsim exit code and use log-based pass/fail detection instead.
+VSIM_RUN_PREFIX  = -
+CHECK_SIM_RESULT = YES
+
+# Log-based pass/fail detection for ISS=GVSOC DPI
+# Detection logic (in order of precedence):
+# 1. If UVM_ERROR/FATAL are present and non-zero -> FAIL
+# 2. If "Errors: 0" is present -> PASS (vpiFinish may terminate early)
+# 3. If UVM_ERROR/FATAL are present and zero -> PASS
+# 4. If none of the above -> FAIL (unable to determine status)
+POST_TEST = if grep -q "Errors: 0" $(RUN_DIR)/vsim-$(VSIM_TEST).log && grep -q "SIMULATION PASSED" $(RUN_DIR)/vsim-$(VSIM_TEST).log; then echo "GVSOC DPI: PASSED"; exit 0; else echo "GVSOC DPI: FAILED"; exit 1; fi
+
+test: generate_gvsoc_dpi_config hex run
+
+# GNU make merges `test` prerequisites across rules. vsim.mk's `test: hex run`
+# is parsed before this file, so generate_gvsoc_dpi_config is appended LAST and
+# the config regenerates AFTER the sim has already consumed the stale on-disk
+# copy. This edge makes regen a prerequisite of `run`, guaranteeing a fresh
+# config before each DPI simulation (make test self-heals a stale config).
+run: generate_gvsoc_dpi_config
+
+generate_gvsoc_dpi_config:
+	@echo "--- Generating GVSOC config for DPI (CFG=$(CFG)) ---"
+	$(MAKE) -C $(GVSOC_RVVI_HOME) config \
+		BINARY=$(GVSOC_ELF) \
+		COREV_PULP=$(GVSOC_COREV_PULP) \
+		FPU=$(GVSOC_FPU) \
+		ZFINX=$(GVSOC_ZFINX) \
+		NUM_MHPMCOUNTERS=$(GVSOC_NUM_MHPMCOUNTERS)
+ifeq ($(GVSOC_ZFINX),True)
+	@echo "--- Building ZFINX GVSOC bridge (ISS_SINGLE_REGFILE=1) ---"
+	$(MAKE) -C $(GVSOC_RVVI_HOME) libgvsoc_rvvi_zfinx.so
+endif
+
+endif
