@@ -30,24 +30,57 @@ module uvma_rvvi_sync_bridge
 
     initial begin
         // RVVI v1.37: client_register requires recv_nets/recv_memory flags.
-        // Step-n-compare does not consume net_pop/mem_access_pop events, so both 0.
+`ifdef USE_GVSOC
+        // GVSOC path: recv_nets=1 subscribes to the interrupt nets so net_pop()
+        // delivers the DUT irq_i toggles into the reference model's mip (via
+        // rvviRefNetSet -> gvsoc_engine_set_irq).  Required for tests that
+        // software-poll mip (e.g. interrupt_test): without it the reference mip
+        // stays 0 while the DUT mip reflects the pending bit, and the poll diverges.
+        // recv_memory=0: step-n-compare does not consume memory-access events.
+        client_id = rvvi.client_register(1'b1, 1'b0);
+`else
+        // Imperas path: unchanged from upstream -- no net subscription (the GVSOC
+        // mip-feed is GVSOC-specific; keeping recv_nets=0 leaves Imperas inert).
         client_id = rvvi.client_register(1'b0, 1'b0);
+`endif
     end
 
 `ifdef USE_GVSOC
     // GVSOC-specific batch DPI: collapses step + 4 compares into one crossing.
-    // Returns a bitmask: 0x01=step 0x02=PC 0x04=GPR 0x08=CSR 0x10=FPR.
+    // Returns a bitmask: 0x01=step 0x02=PC 0x04=GPR 0x08=CSR 0x10=FPR 0x20=runaway.
     import "DPI-C" function int rvviRefRetireAndCompare(
         input int unsigned  hartId,
         input longint unsigned dutPc,
         input int unsigned  dutInsn,
         input byte unsigned debugMode);
+
+    // Informed IRQ injection (OVPSim-style "deferint"): on an external-interrupt
+    // trap retire, tell the reference ISS to TAKE the IRQ and COMPUTE the entry
+    // itself (no DUT-state copy). Plusarg-gated via +rvvi_informed_irq; when off,
+    // the reactive resync in rvvi_bridge.cpp stays the only IRQ path.
+    import "DPI-C" function void rvviRefSetInformedIrq(input int enable);
+    import "DPI-C" function void rvviRefInjectIrq(
+        input int unsigned hartId,
+        input int unsigned mcause);
+
+    // Enable the informed-injection path in the C bridge iff the plusarg is set.
+    bit informed_irq_en = 1'b0;
+    initial begin
+        informed_irq_en = $test$plusargs("rvvi_informed_irq") != 0;
+        rvviRefSetInformedIrq(informed_irq_en ? 1 : 0);
+    end
 `endif
 
     // Debug counters
     longint unsigned retire_count = 0;
     int unsigned err_count = 0;
     localparam int unsigned MAX_ERR_LOG = 10;
+
+    // Consecutive-mismatch watchdog bound (see the compare block below).
+    // Override on the command line with +rvvi_max_consecutive_mismatch=<n>.
+    int unsigned consecutive_mismatch = 0;
+    int unsigned max_consecutive_mismatch = 50;
+    initial void'($value$plusargs("rvvi_max_consecutive_mismatch=%d", max_consecutive_mismatch));
 
     always @(posedge rvvi.clk) begin
         for (int h=0; h<NHART; h++) begin
@@ -124,9 +157,32 @@ module uvma_rvvi_sync_bridge
                         // GVSOC models exceptions as two ISS steps: (1) faulting
                         // instruction, (2) jump to mtvec.  Consume step 1 silently here;
                         // the handler retire consumes step 2 normally.  No comparison.
+                        // NOTE: this is the SYNCHRONOUS-exception path (rvfi_trap=1,
+                        // mcause[31]=0).  External interrupts do NOT set rvfi_trap and
+                        // are handled in the normal-retire path below (rvfi_intr).
                         void'(rvviRefEventStep(h));
                     end else if (rvvi.pc_rdata[h][r] != 0) begin
                         rvviDutRetire(h, rvvi.pc_rdata[h][r], rvvi.insn[h][r], rvvi.debug_mode[h][r]);
+`ifdef USE_GVSOC
+                        // Informed IRQ injection (gated +rvvi_informed_irq).  The first
+                        // instruction of an EXTERNAL-INTERRUPT handler is a NORMAL retire
+                        // (rvfi_trap=0) with mcause[31]=1.  Tell the ISS to TAKE the IRQ
+                        // and COMPUTE the handler entry itself (one extra ISS step into
+                        // mtvec); the batch step-n-compare below then retires and CHECKS
+                        // the first handler instruction against the DUT (entry computed by
+                        // the ISS, not copied) -- the OVPSim deferint protocol.  Replaces
+                        // the reactive DUT-state-copy resync.
+                        //
+                        // NOTE: rvfi_intr (rvvi.intr) is UNDRIVEN in the CV32E40P RVFI, so
+                        // it cannot gate the entry.  We pass every mcause[31]=1 retire to
+                        // the C bridge, which fires exactly once per genuine take: the C
+                        // entry-detect confirms the DUT retired AT the vectored mtvec entry
+                        // (base + cause*4) and the ISS has not already taken it (ISS MIE==1).
+                        // A stale mcause[31] lingering in normal code is rejected because the
+                        // DUT PC there is not the trap vector.
+                        if (informed_irq_en && rvvi.csr[h][r][12'h342][31])
+                            rvviRefInjectIrq(h, rvvi.csr[h][r][12'h342]);
+`endif
                     end
 
                     // 6. Step Reference Model + 7. Comparisons
@@ -166,6 +222,38 @@ module uvma_rvvi_sync_bridge
                                 $error("RVVI Mismatch: FPR at retire #%0d order=%0d (DUT PC=0x%08x)",
                                        retire_count, rvvi.order[h][r], rvvi.pc_rdata[h][r]);
                                 err_count++;
+                            end
+                        end
+
+                        // Runaway detector (complements the consecutive-mismatch
+                        // watchdog below): the ISS has diverged AND got stuck (it
+                        // spins at a fixed PC, exhausting its per-step cycle budget
+                        // with no clean retire). Without this, the sim crawls until
+                        // the external OS timeout reaps it at a non-deterministic
+                        // point. The 0x20 bit converts that hang into a clean,
+                        // deterministic FAIL. Fires regardless of the per-bit
+                        // mismatch logging above.
+                        if (cmp_result & 32'h20) begin
+                            $error("RVVI Bridge: GVSOC ISS runaway (diverged + stuck) at retire #%0d (DUT PC=0x%08x) - aborting", retire_count, rvvi.pc_rdata[h][r]);
+                            $finish;
+                        end
+
+                        // Bound a sustained divergence so the regression records
+                        // a FAIL instead of running to the test's full length (or
+                        // hanging).  A clean retire resets the run; once the ISS
+                        // and RTL have disagreed for max_consecutive_mismatch
+                        // retires in a row, abort.  A reference model with
+                        // reconverge-on-mismatch re-syncs instead, but this
+                        // open-source bridge only sees DUT write-backs, so it
+                        // bounds-and-aborts.
+                        if ((cmp_result & 32'h1F) == 32'h1F) begin
+                            consecutive_mismatch = 0;
+                        end else begin
+                            consecutive_mismatch++;
+                            if (consecutive_mismatch >= max_consecutive_mismatch) begin
+                                $error("RVVI Bridge: step-and-compare diverged for %0d consecutive retires (last retire #%0d, DUT PC=0x%08x) - aborting",
+                                       consecutive_mismatch, retire_count, rvvi.pc_rdata[h][r]);
+                                $finish;
                             end
                         end
                     end
