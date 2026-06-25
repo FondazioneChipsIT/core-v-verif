@@ -120,6 +120,9 @@ test: generate_gvsoc_dpi_config hex run
 # config before each DPI simulation (make test self-heals a stale config).
 run: generate_gvsoc_dpi_config
 
+# COREV_CLUSTER is intentionally NOT passed here (unlike the GVSOC_TRACE recipes
+# generate_gvsoc_config / run_gvsoc above): the cluster model is a known DPI
+# divergence (WONTFIX), so the DPI config is generated single-core.
 generate_gvsoc_dpi_config:
 	@echo "--- Generating GVSOC config for DPI (CFG=$(CFG)) ---"
 	$(MAKE) -C $(GVSOC_RVVI_HOME) config \

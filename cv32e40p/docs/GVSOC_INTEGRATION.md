@@ -7,7 +7,7 @@ gvsoc-pulp#74 and gvsoc#252.
 
 ## What this adds
 
-- A DPI step-and-compare bridge (`uvma_rvvi_sync_bridge`) driving GVSOC over the
+- A DPI step-and-compare bridge (`rvvi_trace2api`) driving GVSOC over the
   standard RVVI interface, selected with `ISS=GVSOC`.
 - A GVSOC reference-model wrap (`uvmt_cv32e40p_gvsoc_wrap`) built on the
   RVFI→RVVI wiring shared, unchanged in behaviour, with the Imperas wrap.

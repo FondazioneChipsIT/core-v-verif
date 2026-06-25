@@ -95,7 +95,7 @@ module uvmt_cv32e40p_gvsoc_wrap
   import rvviApiPkg::*;
   #(
      // FPU/ZFINX: declared for API symmetry with imperas_dv_wrap.
-     // uvma_rvvi_sync_bridge has no CMP_FPR knob - FPR comparison is
+     // rvvi_trace2api has no CMP_FPR knob - FPR comparison is
      // unconditional but harmless on non-FPU builds (zeros vs zeros).
      parameter FPU   = 0,
      parameter ZFINX = 0
@@ -108,7 +108,7 @@ module uvmt_cv32e40p_gvsoc_wrap
     import "DPI-C" function int rvviRefIsFinished();
 
     // Instantiate Open-Source Sync Bridge
-    uvma_rvvi_sync_bridge #(
+    rvvi_trace2api #(
         .NHART(1),
         .RETIRE(1)
     )
@@ -119,7 +119,7 @@ module uvmt_cv32e40p_gvsoc_wrap
     //
     // When the firmware writes to the exit device, rvviRefEventStep() schedules
     // $finish via vpi_control. If the DUT enters WFI before that $finish is
-    // processed, the clocked always block in uvma_rvvi_sync_bridge never fires
+    // processed, the clocked always block in rvvi_trace2api never fires
     // again and the simulator hangs. This initial block polls rvviRefIsFinished()
     // and forces $finish from a non-clocked context, which the simulator can
     // always service regardless of DUT clock state.

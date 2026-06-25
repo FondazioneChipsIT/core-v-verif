@@ -1,25 +1,36 @@
 `ifndef __UVMT_CV32E40P_ISS_WRAP_COMMON_SVH__
 `define __UVMT_CV32E40P_ISS_WRAP_COMMON_SVH__
 
-// Common RVFI-to-RVVI wiring shared between the GVSOC and Imperas ISS wraps.
+// Common RVFI-to-RVVI wiring shared by the GVSOC and Imperas ISS wraps.
+// Kept verbatim with the original Imperas wrap; every GVSOC-specific divergence
+// is isolated under `ifdef USE_GVSOC so the Imperas path stays unchanged.
 //
-// The including module must define:
-//   - `DUT_PATH, `RVFI_IF          - DUT hierarchy path and RVFI interface handle
-//   - `RVVI_SET_CSR, `RVVI_SET_CSR_VEC, `RVVI_WRITE_IRQ - RVVI assignment helpers
-//   - `include "uvmt_cv32e40p_csr_defs.svh"
-//   - rvviTrace rvvi                - RVVI port
+// The including module must define: `DUT_PATH, `RVFI_IF, the RVVI helpers
+// `RVVI_SET_CSR / `RVVI_SET_CSR_VEC / `RVVI_WRITE_IRQ,
+// `include "uvmt_cv32e40p_csr_defs.svh", and the `rvviTrace rvvi` port.
 //
-// `RVVI_SET_TRAP_CSR - trap-aware CSR assignment.
-// On a trap-induced write the RTL sets wmask=0; the correct value is in wdata.
-// Wraps that define this macro before `include get the wdata-direct path.
-// Wraps that do not (e.g. Imperas) fall back to the standard `RVVI_SET_CSR formula.
+// `RVVI_SET_TRAP_CSR: trap-aware CSR helper. On a trap-induced write the RTL
+// sets wmask=0 and the value is in wdata. A wrap that defines this macro before
+// the include (GVSOC) gets the wdata-direct path; a wrap that does not (Imperas)
+// falls back to `RVVI_SET_CSR -> the mstatus/mepc/mcause lines below are
+// identical to the original on the Imperas path.
 `ifndef RVVI_SET_TRAP_CSR
 `define RVVI_SET_TRAP_CSR(CSR_ADDR, CSR_NAME) `RVVI_SET_CSR(CSR_ADDR, CSR_NAME)
 `endif
 
-    // =========================================================================
-    // RVFI core signals -> RVVI interface
-    // =========================================================================
+    ////////////////////////////////////////////////////////////////////////////
+    // Adopted from:
+    // ImperasDV/examples/openhwgroup_cv32e40x/systemverilog/cv32e40x_testbench.sv
+    //
+    // InstrunctionBusFault(48) is in fact a TRAP which is derived externally
+    // This is strange as other program TRAPS are derived by the model, for now
+    // We have to ensure we do not step the REF model for this TRAP as it will
+    // Step too far. So instead we block it as being VALID, but pass on the
+    // signals.
+    // maybe we need a different way to communicate this to the model, for
+    // instance the ability to register a callback on fetch, in order to assert
+    // this signal.
+    ////////////////////////////////////////////////////////////////////////////
     assign rvvi.clk            = `RVFI_IF.clk_i;
     assign rvvi.valid[0][0]    = `RVFI_IF.rvfi_valid;
     assign rvvi.order[0][0]    = `RVFI_IF.rvfi_order;
@@ -29,34 +40,35 @@
     assign rvvi.mode[0][0]     = `RVFI_IF.rvfi_mode;
     assign rvvi.ixl[0][0]      = `RVFI_IF.rvfi_ixl;
     assign rvvi.pc_rdata[0][0] = `RVFI_IF.rvfi_pc_rdata;
+    //  assign rvvi.pc_wdata[0][0] = `RVFI_IF.rvfi_pc_wdata;
 
-    // =========================================================================
-    // CSR wiring - scalar CSRs
-    // =========================================================================
-    `RVVI_SET_TRAP_CSR( `CSR_MSTATUS_ADDR,   mstatus       )  // trap write: wmask=0, take wdata (captures MPIE/MIE/MPP)
+    `RVVI_SET_TRAP_CSR( `CSR_MSTATUS_ADDR, mstatus )  // trap write: wmask=0 -> take wdata
     `RVVI_SET_CSR( `CSR_MISA_ADDR,          misa          )
     `RVVI_SET_CSR( `CSR_MIE_ADDR,           mie           )
     `RVVI_SET_CSR( `CSR_MTVEC_ADDR,         mtvec         )
     `RVVI_SET_CSR( `CSR_MCOUNTINHIBIT_ADDR, mcountinhibit )
     `RVVI_SET_CSR( `CSR_MSCRATCH_ADDR,      mscratch      )
-    `RVVI_SET_TRAP_CSR( `CSR_MEPC_ADDR,   mepc   )   // trap write: wmask=0, take wdata
-    `RVVI_SET_TRAP_CSR( `CSR_MCAUSE_ADDR, mcause )   // trap write: wmask=0, take wdata
-    `RVVI_SET_TRAP_CSR( `CSR_MTVAL_ADDR,  mtval  )   // trap write: wmask=0, take wdata
+    `RVVI_SET_TRAP_CSR( `CSR_MEPC_ADDR,   mepc   )  // trap write: wmask=0 -> take wdata
+    `RVVI_SET_TRAP_CSR( `CSR_MCAUSE_ADDR, mcause )  // trap write: wmask=0 -> take wdata
+`ifdef USE_GVSOC
+    // GVSOC models mtval; on a trap the RTL sets wmask=0 so take wdata.
+    `RVVI_SET_TRAP_CSR( `CSR_MTVAL_ADDR,  mtval  )
+`else
+    //  `RVVI_SET_CSR( `CSR_MTVAL_ADDR,         mtval         )
+`endif
     `RVVI_SET_CSR( `CSR_MIP_ADDR,           mip           )
+    // `RVVI_SET_CSR( `CSR_MCYCLE_ADDR,        mcycle        )
     `RVVI_SET_CSR( `CSR_MINSTRET_ADDR,      minstret      )
+    //  `RVVI_SET_CSR( `CSR_MCYCLEH_ADDR,       mcycleh       )
     `RVVI_SET_CSR( `CSR_MINSTRETH_ADDR,     minstreth     )
-    `RVVI_SET_CSR( `CSR_INSTRET_ADDR,       instret       )
-
-    // =========================================================================
-    // CSR wiring - HPM events (mhpmevent3..31)
-    // =========================================================================
-    `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT3_ADDR,  mhpmevent,  3)
-    `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT4_ADDR,  mhpmevent,  4)
-    `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT5_ADDR,  mhpmevent,  5)
-    `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT6_ADDR,  mhpmevent,  6)
-    `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT7_ADDR,  mhpmevent,  7)
-    `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT8_ADDR,  mhpmevent,  8)
-    `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT9_ADDR,  mhpmevent,  9)
+    `RVVI_SET_CSR( `CSR_INSTRET_ADDR,      instret      )
+    `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT3_ADDR, mhpmevent, 3)
+    `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT4_ADDR, mhpmevent, 4)
+    `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT5_ADDR, mhpmevent, 5)
+    `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT6_ADDR, mhpmevent, 6)
+    `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT7_ADDR, mhpmevent, 7)
+    `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT8_ADDR, mhpmevent, 8)
+    `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT9_ADDR, mhpmevent, 9)
     `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT10_ADDR, mhpmevent, 10)
     `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT11_ADDR, mhpmevent, 11)
     `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT12_ADDR, mhpmevent, 12)
@@ -79,11 +91,7 @@
     `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT29_ADDR, mhpmevent, 29)
     `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT30_ADDR, mhpmevent, 30)
     `RVVI_SET_CSR_VEC( `CSR_MHPMEVENT31_ADDR, mhpmevent, 31)
-
-    // =========================================================================
-    // CSR wiring - HPM counters (mhpmcounter3..31 + mhpmcounterh3..31)
-    // =========================================================================
-    `RVVI_SET_CSR_VEC( `CSR_MHPMCOUNTER3_ADDR,  mhpmcounter,  3)
+    `RVVI_SET_CSR_VEC( `CSR_MHPMCOUNTER3_ADDR, mhpmcounter, 3)
     `RVVI_SET_CSR_VEC( `CSR_MHPMCOUNTER3H_ADDR, mhpmcounterh, 3)
     `RVVI_SET_CSR_VEC( `CSR_MHPMCOUNTER4_ADDR,  mhpmcounter,  4)
     `RVVI_SET_CSR_VEC( `CSR_MHPMCOUNTER4H_ADDR, mhpmcounterh, 4)
@@ -142,14 +150,13 @@
     `RVVI_SET_CSR_VEC( `CSR_MHPMCOUNTER31_ADDR,  mhpmcounter,  31)
     `RVVI_SET_CSR_VEC( `CSR_MHPMCOUNTER31H_ADDR, mhpmcounterh, 31)
 
-    // =========================================================================
-    // CSR wiring - misc read-only and debug CSRs
-    // =========================================================================
-    `RVVI_SET_CSR( `CSR_INSTRETH_ADDR,      instreth      )
+    `RVVI_SET_CSR( `CSR_INSTRETH_ADDR,     instreth     )
     `RVVI_SET_CSR( `CSR_MVENDORID_ADDR,     mvendorid     )
     `RVVI_SET_CSR( `CSR_MARCHID_ADDR,       marchid       )
+    //  `RVVI_SET_CSR( `CSR_MIMPID_ADDR,        mimpid        )
     `RVVI_SET_CSR( `CSR_MHARTID_ADDR,       mhartid       )
 
+    //  `RVVI_SET_CSR( `CSR_TSELECT_ADDR,       tselect       )
     `RVVI_SET_CSR( `CSR_DCSR_ADDR,          dcsr          )
     `RVVI_SET_CSR( `CSR_DPC_ADDR,           dpc           )
     `RVVI_SET_CSR_VEC(`CSR_DSCRATCH0_ADDR, dscratch, 0)
@@ -158,16 +165,11 @@
     `RVVI_SET_CSR_VEC(`CSR_TDATA2_ADDR, tdata, 2)
     `RVVI_SET_CSR( `CSR_TINFO_ADDR,         tinfo         )
 
-    // =========================================================================
-    // CSR wiring - FPU CSRs
-    // =========================================================================
+
     `RVVI_SET_CSR(`CSR_FFLAGS_ADDR, fflags)
     `RVVI_SET_CSR(`CSR_FRM_ADDR   , frm   )
     `RVVI_SET_CSR(`CSR_FCSR_ADDR  , fcsr  )
 
-    // =========================================================================
-    // CSR wiring - PULP hardware loop CSRs
-    // =========================================================================
     `RVVI_SET_CSR(`CSR_LPCOUNT0_ADDR  , lpcount0  )
     `RVVI_SET_CSR(`CSR_LPSTART0_ADDR  , lpstart0  )
     `RVVI_SET_CSR(`CSR_LPEND0_ADDR    , lpend0    )
@@ -175,10 +177,9 @@
     `RVVI_SET_CSR(`CSR_LPCOUNT1_ADDR  , lpcount1  )
     `RVVI_SET_CSR(`CSR_LPSTART1_ADDR  , lpstart1  )
     `RVVI_SET_CSR(`CSR_LPEND1_ADDR    , lpend1    )
-
-    // =========================================================================
-    // GPR registers
-    // =========================================================================
+    ////////////////////////////////////////////////////////////////////////////
+    // Assign the RVVI GPR registers
+    ////////////////////////////////////////////////////////////////////////////
     bit [31:0] XREG[32];
     genvar gi;
     generate
@@ -188,21 +189,32 @@
     endgenerate
 
     always @(*) begin
-        for (int i=1; i<32; i++) begin
+        int i;
+        for (i=1; i<32; i++) begin
             XREG[i] = 32'b0;
-            if (`RVFI_IF.rvfi_rd_addr[0]==5'(i)) XREG[i] = `RVFI_IF.rvfi_rd_wdata[0];
-            if (`RVFI_IF.rvfi_rd_addr[1]==5'(i)) XREG[i] = `RVFI_IF.rvfi_rd_wdata[1];
+            // TODO: This current RVFI implementation will only allow a single destination
+            //       register to be written. For some instructions this is not sufficient
+            //       This code will need enhancing once the RVFI has the ability to describe
+            //       multiple target register writes, for a single instruction
+            if (`RVFI_IF.rvfi_rd_addr[0]==5'(i))
+            XREG[i] = `RVFI_IF.rvfi_rd_wdata[0];
+            if (`RVFI_IF.rvfi_rd_addr[1]==5'(i))
+            XREG[i] = `RVFI_IF.rvfi_rd_wdata[1];
         end
     end
-    assign rvvi.x_wb[0][0] = ((1 << `RVFI_IF.rvfi_rd_addr[0]) | (1 << `RVFI_IF.rvfi_rd_addr[1]));
 
-    // =========================================================================
-    // FPR registers
-    // =========================================================================
+    assign rvvi.x_wb[0][0] = (1 << `RVFI_IF.rvfi_rd_addr[0] | 1 << `RVFI_IF.rvfi_rd_addr[1]); // TODO: originally rvfi_rd_addr
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Assign the RVVI F GPR registers
+    ////////////////////////////////////////////////////////////////////////////
     bit [31:0] FREG[32];
+
     bit is_f_reg [1:0];
+
     assign is_f_reg[0] = `RVFI_IF.rvfi_frd_wvalid[0];
     assign is_f_reg[1] = `RVFI_IF.rvfi_frd_wvalid[1];
+
     int f_reg_addr [1:0];
     assign f_reg_addr[0] = `RVFI_IF.rvfi_frd_addr[0];
     assign f_reg_addr[1] = `RVFI_IF.rvfi_frd_addr[1];
@@ -215,26 +227,32 @@
     endgenerate
 
     always @(*) begin
-        for (int i=0; i<32; i++) begin
+        int i;
+        for (i=0; i<32; i++) begin
             FREG[i] = 32'b0;
-            if (is_f_reg[0] & (`RVFI_IF.rvfi_frd_addr[0]==5'(i))) FREG[i] = `RVFI_IF.rvfi_frd_wdata[0];
-            if (is_f_reg[1] & (`RVFI_IF.rvfi_frd_addr[1]==5'(i))) FREG[i] = `RVFI_IF.rvfi_frd_wdata[1];
+            if (is_f_reg[0] & (`RVFI_IF.rvfi_frd_addr[0]==5'(i)))
+            FREG[i] = `RVFI_IF.rvfi_frd_wdata[0];
+            if (is_f_reg[1] & (`RVFI_IF.rvfi_frd_addr[1]==5'(i)))
+            FREG[i] = `RVFI_IF.rvfi_frd_wdata[1];
         end
     end
-    assign rvvi.f_wb[0][0] = ((is_f_reg[0] << f_reg_addr[0]) | (is_f_reg[1] << f_reg_addr[1]));
 
-    // =========================================================================
-    // DEBUG REQUESTS
-    // =========================================================================
+    assign rvvi.f_wb[0][0] = (is_f_reg[0] << f_reg_addr[0] | is_f_reg[1] << f_reg_addr[1]);
+
+    ////////////////////////////////////////////////////////////////////////////
+    // DEBUG REQUESTS,
+    ////////////////////////////////////////////////////////////////////////////
     logic debug_req_i;
     assign debug_req_i = `DUT_PATH.debug_req_i;
     always @(debug_req_i) begin
         void'(rvvi.net_push("haltreq", debug_req_i));
     end
 
-    // =========================================================================
+    ////////////////////////////////////////////////////////////////////////////
     // INTERRUPTS
-    // =========================================================================
+    // assert when MIP or cause bit
+    // negate when posedge clk && valid=1 && debug=0
+    ////////////////////////////////////////////////////////////////////////////
     `RVVI_WRITE_IRQ(MSWInterrupt,        3)
     `RVVI_WRITE_IRQ(MTimerInterrupt,     7)
     `RVVI_WRITE_IRQ(MExternalInterrupt, 11)
@@ -254,5 +272,4 @@
     `RVVI_WRITE_IRQ(LocalInterrupt13,   29)
     `RVVI_WRITE_IRQ(LocalInterrupt14,   30)
     `RVVI_WRITE_IRQ(LocalInterrupt15,   31)
-
 `endif // __UVMT_CV32E40P_ISS_WRAP_COMMON_SVH__

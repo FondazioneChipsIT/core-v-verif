@@ -22,4 +22,3 @@
 
 // Files
 ${DV_UVMA_RVVI_PATH}/uvma_rvvi_pkg.sv
-${DV_UVMA_RVVI_PATH}/uvma_rvvi_sync_bridge.sv

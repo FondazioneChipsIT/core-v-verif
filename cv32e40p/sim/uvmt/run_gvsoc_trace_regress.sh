@@ -6,42 +6,24 @@ module load "${QUESTA_MODULE:-questa/2025.3}" 2>/dev/null
 eval "$(micromamba shell hook --shell=bash)" 2>/dev/null
 micromamba activate "${MAMBA_ENV:-gvsoc_env_3_12}" 2>/dev/null
 
-cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
 
-# Tests grouped by cfg (order matters: first per cfg compiles the testbench).
-TESTS=(
-  "hello-world default"
-  "fibonacci default"
-  "dhrystone default"
-  "misalign default"
-  "illegal default"
-  "riscv_ebreak_test_0 default"
-  "riscv_arithmetic_basic_test_0 default"
-  "riscv_arithmetic_basic_test_1 default"
-  "illegal_instr_test default"
-  "csr_instructions default"
-  "csr_instr_asm default"
-  "cv32e40p_csr_access_test default"
-  "cv32e40p_readonly_csr_access_test default"
-  "requested_csr_por default"
-  "modeled_csr_por default"
-  "hpmcounter_basic_test default"
-  "hpmcounter_hazard_test default"
-  "perf_counters_instructions default"
-  "mhpmcounter29_csr_access_test_1 default"
-  "generic_exception_test default"
-  "isa_fcov_holes default"
-  "fibonacci pulp"
-  "pulp_general_alu pulp"
-  "pulp_hardware_loop pulp"
-  "pulp_bit_manipulation pulp"
-  "pulp_multiply_accumulate pulp"
-  "pulp_post_increment_load_store pulp"
-  "custom_opcode_illegal_test pulp"
-  "csr_instructions pulp_fpu"
-  "cv32e40p_csr_access_test pulp_fpu"
-  "cv32e40p_readonly_csr_access_test pulp_fpu"
-)
+# Test list: single source of truth in cv32e40p/regress.
+# Each entry is "<test> <cfg>". Order matters: the first entry of each cfg compiles
+# the testbench (COMP=YES); the rest of that cfg run COMP=NO in parallel.
+# Override the list with TRACE_TESTLIST=<file>.
+TRACE_TESTLIST="${TRACE_TESTLIST:-$SCRIPT_DIR/../../regress/cv32e40p_gvsoc_trace.yaml}"
+if [ ! -f "$TRACE_TESTLIST" ]; then
+  echo "ERROR: GVSOC_TRACE test list not found: $TRACE_TESTLIST" >&2
+  exit 1
+fi
+mapfile -t TESTS < <(grep -E '^[[:space:]]*-[[:space:]]+' "$TRACE_TESTLIST" \
+                       | sed -E 's/^[[:space:]]*-[[:space:]]+//; s/[[:space:]]+#.*$//')
+if [ "${#TESTS[@]}" -eq 0 ]; then
+  echo "ERROR: no tests parsed from $TRACE_TESTLIST" >&2
+  exit 1
+fi
 
 MAX_PARALLEL=4
 RESULTS_FILE=$(mktemp /tmp/gvsoc_trace_results.XXXXXX)

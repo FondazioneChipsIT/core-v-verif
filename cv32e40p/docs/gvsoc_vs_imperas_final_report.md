@@ -82,7 +82,7 @@ must run versus what stays with the RTL/formal sign-off.
 | Source | Closed binary (`.so`) | C++, modifiable |
 | Role in flow | RVVI reference model (default `ISS ?= IMPERAS`) | RVVI reference model (`ISS=GVSOC`) |
 | Configuration | `ovpsim.ic` / ImperasDV model | JSON config from a Python target |
-| SV interface | RVVI (`uvma_rvvi_ovpsim`) | RVVI (`uvma_rvvi_sync_bridge`) |
+| SV interface | RVVI (`uvma_rvvi_ovpsim`) | RVVI (`rvvi_trace2api`) |
 | Mismatch policy | `ON_MISMATCH_RECONVERGE` (re-sync ref to RTL) | none — flag, then bridge waits |
 | Bug fixing | Not possible without vendor support | Direct in the C++ source |
 | Where it runs in official CI | External Metrics cloud | Local (built from source) |
@@ -345,11 +345,11 @@ GVSOC over a closed binary.
 │ UVM testbench (uvmt_cv32e40p_tb.sv)             │
 │   ├─ DUT (cv32e40p_top)                         │
 │   ├─ RVFI monitor (uvma_rvfi_agent)             │
-│   ├─ RVVI sync bridge (uvma_rvvi_sync_bridge)   │  ← GVSOC path
+│   ├─ RVVI sync bridge (rvvi_trace2api)   │  ← GVSOC path
 │   ├─ OVPSIM agent (uvma_rvvi_ovpsim)            │  ← Imperas path
 │   └─ ISS wrap (gvsoc_wrap / imperas_dv_wrap)    │  ← selected by ISS=
 ├─────────────────────────────────────────────────┤
-│ libgvsoc_rvvi.so  (rvvi_bridge.cpp + engine)    │
+│ libgvsoc_rvvi.so  (rvvi_api2gvsoc.cpp + engine)    │
 ├─────────────────────────────────────────────────┤
 │ GVSOC ISS C++ models (cores/cv32e40p, shared)    │
 └─────────────────────────────────────────────────┘
@@ -359,7 +359,7 @@ Shared RVFI→RVVI wiring: `uvmt_cv32e40p_iss_wrap_common.svh` (included by both
 wraps; the GVSOC wrap defines `RVVI_SET_TRAP_CSR`, the Imperas wrap falls back to
 the inert default). Key files: `vendor_lib/gvsoc_rvvi/{rvvi_bridge,gvsoc_engine}.cpp`,
 `cv32e40p/tb/uvmt/uvmt_cv32e40p_gvsoc_wrap.sv`,
-`lib/uvm_agents/uvma_rvvi/uvma_rvvi_sync_bridge.sv`.
+`vendor_lib/gvsoc_rvvi/rvvi_trace2api.sv`.
 
 ---
 

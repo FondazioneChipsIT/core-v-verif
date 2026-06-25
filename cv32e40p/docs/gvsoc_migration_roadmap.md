@@ -129,7 +129,7 @@ wrap has `ON_MISMATCH_RECONVERGE`. On a *sustained* CSR mismatch GVSOC hangs
 (hours of wall-clock) instead of failing fast. This is the structural asymmetry
 between the two reference-model paths.
 
-- [ ] Add a consecutive-mismatch counter in `uvma_rvvi_sync_bridge.sv`
+- [ ] Add a consecutive-mismatch counter in `rvvi_trace2api.sv`
 - [ ] Configurable threshold (e.g. 100 consecutive mismatches → `UVM_FATAL`)
 - [ ] (stretch) evaluate a reconverge-equivalent to keep running past a mismatch
 - [ ] Smoke + targeted regression
