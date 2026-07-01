@@ -145,6 +145,13 @@ endif
 VLOG_FLAGS += +define+$(CV_CORE_UC)_CORE_LOG
 VLOG_FLAGS += +define+UVM
 ifeq ($(call IS_YES,$(USE_ISS)),YES)
+  ifeq ($(call IS_YES,$(RVVI_TRACE)),YES)
+    # USE_ISS wins this else-chain, so RVVI_TRACE=YES is silently a no-op here
+    # (running the co-sim and the RTL tracer together is not supported yet).
+    # USE_ISS may have come from IMPERAS_HOME auto-default (mk/uvmt/uvmt.mk),
+    # not an explicit user request - flag it so the ignore isn't silent.
+    $(info Info: RVVI_TRACE=YES is ignored - USE_ISS=YES takes precedence (co-sim, not RTL-only tracer). Use USE_ISS=NO for the RTL-only path.)
+  endif
   VLOG_FLAGS += +define+USE_ISS
   ifeq ($(ISS),GVSOC)
     VLOG_FLAGS += +define+USE_GVSOC
@@ -158,6 +165,11 @@ ifeq ($(call IS_YES,$(USE_ISS)),YES)
   ifeq ($(call IS_YES,$(COV)),YES)
     VLOG_FLAGS += +define+IMPERAS_COV
   endif
+else ifeq ($(call IS_YES,$(RVVI_TRACE)),YES)
+  # RTL-only RVVI-TEXT trace (no ISS): DUT-only writer via librvvi_text.so.
+  VLOG_FLAGS += +define+RVVI_TRACE
+  VLOG_FILE_LIST_IDV = -f $(DV_UVMT_PATH)/rvvi_trace.flist
+  ISS_MODEL = $(RVVI_TEXT_MODEL)
 endif
 ifeq ($(call IS_YES,$(COV)),YES)
 VLOG_FLAGS += -covermultiuserenv
@@ -206,6 +218,17 @@ ifeq ($(call IS_YES,$(USE_ISS)),YES)
   endif
   ifeq ($(call IS_YES,$(COV)),YES)
     VSIM_FLAGS += +IDV_TRACE2COV=1
+  endif
+else ifeq ($(call IS_YES,$(RVVI_TRACE)),YES)
+  VSIM_FLAGS += +RVVI_TRACE
+  VSIM_FLAGS += -sv_lib $(basename $(RVVI_TEXT_MODEL))
+  # RVVI_TEXT_TRACE=<dir>|1 -> redirect dut.rvvi (unset: cwd/dut.rvvi).
+  ifneq ($(RVVI_TEXT_TRACE),)
+    ifeq ($(RVVI_TEXT_TRACE),1)
+      VSIM_FLAGS += +rvvi_text_dut=dut.rvvi
+    else
+      VSIM_FLAGS += +rvvi_text_dut=$(RVVI_TEXT_TRACE)/dut.rvvi
+    endif
   endif
 else
   VSIM_FLAGS += +DISABLE_OVPSIM

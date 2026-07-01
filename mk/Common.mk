@@ -182,6 +182,11 @@ GVSOC_RVVI_HOME  = $(CORE_V_VERIF)/vendor_lib/gvsoc_rvvi
 GVSOC_RVVI_MODEL = $(GVSOC_RVVI_HOME)/$(if $(filter True,$(GVSOC_ZFINX)),libgvsoc_rvvi_zfinx.so,libgvsoc_rvvi.so)
 export GVSOC_CONFIG ?= $(GVSOC_RVVI_HOME)/gvsoc_config_$(CFG).json
 
+# librvvi_text.so: standalone RVVI-TEXT writer for the RTL-only trace mode
+# (RVVI_TRACE=YES, no ISS). Built by the gvsoc_rvvi Makefile ('make' / 'make all').
+RVVI_TEXT_MODEL = $(GVSOC_RVVI_HOME)/librvvi_text.so
+RVVI_TRACE ?= NO
+
 # Derive CV32E40P core configuration parameters for GVSOC from the CFG name.
 # CFG_LC patterns: "pulp" -> COREV_PULP, "fpu" -> FPU, "zfinx" -> ZFINX,
 #                  "cluster" -> COREV_CLUSTER.

@@ -141,9 +141,11 @@ module uvmt_cv32e40p_tb;
    uvmt_cv32e40p_isa_covg_if     isa_covg_if();
 
 
-   // RVVI SystemVerilog Interface
+   // RVVI SystemVerilog Interface (co-sim ISS path, or RTL-only RVVI_TRACE)
    `ifndef FORMAL
    `ifdef USE_ISS
+      rvviTrace #( .NHART(1), .RETIRE(1)) rvvi_if();
+   `elsif RVVI_TRACE
       rvviTrace #( .NHART(1), .RETIRE(1)) rvvi_if();
    `endif
    `endif
@@ -594,6 +596,12 @@ module uvmt_cv32e40p_tb;
           .SET_IDV_RECONVERGE     (SET_IDV_RECONVERGE)
         ) imperas_dv (rvvi_if);
       `endif
+    `elsif RVVI_TRACE
+      // RTL-only RVVI-TEXT trace: DUT-only writer (no ISS, no step-n-compare).
+      uvmt_cv32e40p_rvvi_text_tracer #(
+        .FPU                    (CORE_PARAM_FPU),
+        .ZFINX                  (CORE_PARAM_ZFINX)
+      ) rvvi_text_tracer (rvvi_if);
     `endif
     `endif
    /**

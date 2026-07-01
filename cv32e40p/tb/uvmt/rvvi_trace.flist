@@ -1,0 +1,11 @@
+
+// RTL-only RVVI-TEXT trace (RVVI_TRACE=YES, no ISS).
+// Drives the rvviTrace interface from the DUT RVFI and emits dut.rvvi through
+// the librvvi_text.so DPI shim -- no GVSOC bridge, no step-n-compare.
+
+// RVVI Infrastructure (interface + its DPI package)
+${CORE_V_VERIF}/vendor_lib/gvsoc_rvvi/RVVI/source/host/rvvi/rvviApiPkg.sv
+${CORE_V_VERIF}/vendor_lib/gvsoc_rvvi/RVVI/source/host/rvvi/rvviTrace.sv
+
+// DUT-only RVVI-TEXT tracer
+${TBSRC_HOME}/uvmt/uvmt_cv32e40p_rvvi_text_tracer.sv
