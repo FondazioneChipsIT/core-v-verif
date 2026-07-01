@@ -107,6 +107,12 @@ module uvmt_cv32e40p_gvsoc_wrap
     // Declared here so Questa resolves the DPI context within this module scope.
     import "DPI-C" function int rvviRefIsFinished();
 
+    // Custom extension, not part of the vendored RVVI API: called from
+    // ref_init below BEFORE rvviRefInit() so the bridge knows to skip opening
+    // dut.rvvi (the SV tracer on this same rvvi_if is the sole dut.rvvi
+    // producer when RVVI_TRACE is also compiled in).
+    import "DPI-C" function void rvviBridgeSetRefOnly(input byte unsigned refOnly);
+
     // Instantiate Open-Source Sync Bridge
     rvvi_trace2api #(
         .NHART(1),
@@ -153,6 +159,13 @@ module uvmt_cv32e40p_gvsoc_wrap
         end
 
         if ($value$plusargs("elf_file=%s", test_program_elf)) begin
+`ifdef RVVI_TRACE
+            // Dual-trace: the SV tracer alongside this wrap is the sole
+            // dut.rvvi producer -- tell the bridge to open ref.rvvi only.
+            // Must run before rvviRefInit(), where the file-open decision
+            // happens; sequential task order guarantees that.
+            rvviBridgeSetRefOnly(8'd1);
+`endif
             `uvm_info(info_tag, $sformatf("Loading ELF: %0s", test_program_elf), UVM_NONE)
             if (!rvviRefInit(test_program_elf)) begin
                 `uvm_fatal(info_tag, "rvviRefInit failed")

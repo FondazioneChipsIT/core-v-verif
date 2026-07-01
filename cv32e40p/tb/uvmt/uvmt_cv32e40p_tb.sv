@@ -589,6 +589,15 @@ module uvmt_cv32e40p_tb;
           .FPU                    (CORE_PARAM_FPU),
           .ZFINX                  (CORE_PARAM_ZFINX)
         ) gvsoc_dv (rvvi_if);
+        `ifdef RVVI_TRACE
+          // Dual-trace: the tracer shares rvvi_if with gvsoc_dv read-only
+          // and is the sole dut.rvvi producer; the bridge goes ref-only (see
+          // the tracer header for the full picture).
+          uvmt_cv32e40p_rvvi_text_tracer #(
+            .FPU                    (CORE_PARAM_FPU),
+            .ZFINX                  (CORE_PARAM_ZFINX)
+          ) rvvi_text_tracer (rvvi_if);
+        `endif
       `else
         uvmt_cv32e40p_imperas_dv_wrap #(
           .FPU                    (CORE_PARAM_FPU),

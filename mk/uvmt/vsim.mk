@@ -145,19 +145,25 @@ endif
 VLOG_FLAGS += +define+$(CV_CORE_UC)_CORE_LOG
 VLOG_FLAGS += +define+UVM
 ifeq ($(call IS_YES,$(USE_ISS)),YES)
-  ifeq ($(call IS_YES,$(RVVI_TRACE)),YES)
-    # USE_ISS wins this else-chain, so RVVI_TRACE=YES is silently a no-op here
-    # (running the co-sim and the RTL tracer together is not supported yet).
-    # USE_ISS may have come from IMPERAS_HOME auto-default (mk/uvmt/uvmt.mk),
-    # not an explicit user request - flag it so the ignore isn't silent.
-    $(info Info: RVVI_TRACE=YES is ignored - USE_ISS=YES takes precedence (co-sim, not RTL-only tracer). Use USE_ISS=NO for the RTL-only path.)
-  endif
   VLOG_FLAGS += +define+USE_ISS
   ifeq ($(ISS),GVSOC)
     VLOG_FLAGS += +define+USE_GVSOC
     VLOG_FILE_LIST_IDV = -f $(DV_UVMT_PATH)/gvsoc.flist
     ISS_MODEL = $(GVSOC_RVVI_MODEL)
+    ifeq ($(call IS_YES,$(RVVI_TRACE)),YES)
+      # Dual-trace: extra tracer source on top of gvsoc.flist (interface/pkg
+      # already there - see rvvi_trace_dual.flist).
+      VLOG_FLAGS += +define+RVVI_TRACE
+      VLOG_FILE_LIST_IDV += -f $(DV_UVMT_PATH)/rvvi_trace_dual.flist
+    endif
   else
+    ifeq ($(call IS_YES,$(RVVI_TRACE)),YES)
+      # Dual-trace is GVSOC-only (our bridge); Imperas/OVPSim is third-party
+      # and RVVI_TRACE has no effect on that path.
+      # USE_ISS may have come from IMPERAS_HOME auto-default (mk/uvmt/uvmt.mk),
+      # not an explicit user request - flag it so the ignore isn't silent.
+      $(info Info: RVVI_TRACE=YES ignored - dual-trace requires ISS=GVSOC (got ISS=$(ISS)).)
+    endif
     VLOG_FLAGS += +define+USE_IMPERASDV
     VLOG_FILE_LIST_IDV = -f $(DV_UVMT_PATH)/imperas_dv.flist
     ISS_MODEL = $(IMPERAS_DV_MODEL)
@@ -212,6 +218,19 @@ ifeq ($(call IS_YES,$(USE_ISS)),YES)
   ifeq ($(ISS),GVSOC)
     VSIM_FLAGS += +USE_GVSOC
     VSIM_FLAGS += -sv_lib $(basename $(GVSOC_RVVI_MODEL))
+    ifeq ($(call IS_YES,$(RVVI_TRACE)),YES)
+      # Dual-trace: the tracer's own DPI shim, plus its own +rvvi_text_dut=
+      # redirect (same convention as the RTL-only mode below).
+      VSIM_FLAGS += +RVVI_TRACE
+      VSIM_FLAGS += -sv_lib $(basename $(RVVI_TEXT_MODEL))
+      ifneq ($(RVVI_TEXT_TRACE),)
+        ifeq ($(RVVI_TEXT_TRACE),1)
+          VSIM_FLAGS += +rvvi_text_dut=dut.rvvi
+        else
+          VSIM_FLAGS += +rvvi_text_dut=$(RVVI_TEXT_TRACE)/dut.rvvi
+        endif
+      endif
+    endif
   else
     VSIM_FLAGS += +USE_IMPERASDV
     VSIM_FLAGS += -sv_lib $(basename $(IMPERAS_DV_MODEL))

@@ -6,10 +6,12 @@
 // wiring -- and emits dut.rvvi through the librvvi_text.so DPI shim.  NO GVSOC,
 // NO ISS, NO step-n-compare: this is the DUT-only writer.
 //
-// Instantiated only under RVVI_TRACE (RTL-only).  On the co-simulation path
-// (USE_ISS=YES) uvmt_cv32e40p_gvsoc_wrap drives RVVI for step-n-compare instead
-// and no dut.rvvi is produced here, so this module and the wrap are mutually
-// exclusive.
+// Compiled under RVVI_TRACE, in two modes: RTL-only (no USE_ISS), where this
+// module is the sole producer on the rvvi interface and emits dut.rvvi on its
+// own; and dual-trace co-sim (USE_ISS also defined), where a co-sim wrap on
+// the same rvvi_if drives it for step-n-compare and this module compiles its
+// driving wiring out (`ifndef USE_ISS), reads the interface, and remains the
+// sole dut.rvvi producer while the bridge writes ref.rvvi.
 //
 // The RVFI->RVVI macros below are a guarded copy of the ones in
 // uvmt_cv32e40p_gvsoc_wrap.sv (kept identical).  They are duplicated rather than
@@ -117,7 +119,10 @@ module uvmt_cv32e40p_rvvi_text_tracer
      parameter int RETIRE = 1
     )
     (
-        rvviTrace  rvvi   // RVVI SystemVerilog Interface (driven below)
+        // RTL-only: sole producer, drives the interface below.  Dual-trace:
+        // read-only alongside the co-sim wrap (see header).  Which mode
+        // applies is a compile-time fact (`ifdef USE_ISS below).
+        rvviTrace  rvvi
     );
 
     // librvvi_text.so DPI shim (RTL-only writer; no GVSOC dependency).
@@ -139,8 +144,13 @@ module uvmt_cv32e40p_rvvi_text_tracer
 
     localparam int FLEN = (FPU != 0) ? 32 : 0;
 
-    // Register an RVVI client so the interrupt/haltreq nets pushed by the common
-    // wiring have a consumer; we drain and discard them (no reference model).
+    // Register an RVVI client so interrupt/haltreq nets have a consumer here
+    // too; we drain and discard them (no reference model). Needed in both
+    // modes: net_push() broadcasts to every registered client's queue
+    // (rvviTrace.sv), so in dual-trace the nets gvsoc_wrap pushes land in
+    // this client's queue as well -- left undrained they'd grow unbounded.
+    // This tracer never pushes its own nets in dual-trace (its driving
+    // `include below compiles out), it only drains.
     int client_id;
     initial begin
         client_id = rvvi.client_register(1'b1, 1'b0);
@@ -159,12 +169,20 @@ module uvmt_cv32e40p_rvvi_text_tracer
     end
 
     // Common RVFI->RVVI wiring: drives rvvi.{valid,pc,insn,trap,mode,x_*,f_*,csr*}
-    // from the DUT RVFI.  Same include the GVSOC/Imperas wraps use.
+    // from the DUT RVFI.  Same include the GVSOC/Imperas wraps use.  Compiled
+    // in only when USE_ISS is NOT defined: in dual-trace the co-sim wrap on
+    // this same rvvi_if already includes it, and a second copy would
+    // double-drive every rvvi.csr[]/mode[] net the shared macros touch.
+    // NOTE: must stay a plain `ifdef (not a generate-if guarding the
+    // `include) -- the shared .svh has its own top-level generate region,
+    // and SystemVerilog disallows nesting one generate scope inside another.
+`ifndef USE_ISS
     `include "uvmt_cv32e40p_iss_wrap_common.svh"
 
     // The shared include gates mtval wiring behind `ifdef USE_GVSOC; the RTL-only
     // RVVI_TRACE path must drive it here, else trap lines emit mtval=0 (undriven).
     `RVVI_SET_TRAP_CSR(`CSR_MTVAL_ADDR, mtval)
+`endif
 
     // Per-retire: extract the architectural write-set and emit one RVVI-TEXT line.
     // Mirrors the DUT-side push loop of rvvi_trace2api.sv, minus all rvviRef*/ISS
