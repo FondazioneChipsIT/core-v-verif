@@ -221,7 +221,6 @@ ifeq ($(call IS_YES,$(USE_ISS)),YES)
     ifeq ($(call IS_YES,$(RVVI_TRACE)),YES)
       # Dual-trace: the tracer's own DPI shim, plus its own +rvvi_text_dut=
       # redirect (same convention as the RTL-only mode below).
-      VSIM_FLAGS += +RVVI_TRACE
       VSIM_FLAGS += -sv_lib $(basename $(RVVI_TEXT_MODEL))
       ifneq ($(RVVI_TEXT_TRACE),)
         ifeq ($(RVVI_TEXT_TRACE),1)
@@ -239,7 +238,6 @@ ifeq ($(call IS_YES,$(USE_ISS)),YES)
     VSIM_FLAGS += +IDV_TRACE2COV=1
   endif
 else ifeq ($(call IS_YES,$(RVVI_TRACE)),YES)
-  VSIM_FLAGS += +RVVI_TRACE
   VSIM_FLAGS += -sv_lib $(basename $(RVVI_TEXT_MODEL))
   # RVVI_TEXT_TRACE=<dir>|1 -> redirect dut.rvvi (unset: cwd/dut.rvvi).
   ifneq ($(RVVI_TEXT_TRACE),)

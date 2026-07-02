@@ -113,6 +113,11 @@ module uvmt_cv32e40p_gvsoc_wrap
     // producer when RVVI_TRACE is also compiled in).
     import "DPI-C" function void rvviBridgeSetRefOnly(input byte unsigned refOnly);
 
+    // Custom extension: CFG-derived FLEN for the RVVI-TEXT PARAMS header.
+    // Also called before rvviRefInit(); without it the bridge falls back to
+    // FLEN 32 and its header diverges from the tracer's on no-FPU configs.
+    import "DPI-C" function void rvviBridgeSetFlen(input int unsigned flen);
+
     // Instantiate Open-Source Sync Bridge
     rvvi_trace2api #(
         .NHART(1),
@@ -166,6 +171,7 @@ module uvmt_cv32e40p_gvsoc_wrap
             // happens; sequential task order guarantees that.
             rvviBridgeSetRefOnly(8'd1);
 `endif
+            rvviBridgeSetFlen((FPU != 0) ? 32 : 0);
             `uvm_info(info_tag, $sformatf("Loading ELF: %0s", test_program_elf), UVM_NONE)
             if (!rvviRefInit(test_program_elf)) begin
                 `uvm_fatal(info_tag, "rvviRefInit failed")

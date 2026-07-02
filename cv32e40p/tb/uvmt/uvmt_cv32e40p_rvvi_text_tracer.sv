@@ -126,7 +126,7 @@ module uvmt_cv32e40p_rvvi_text_tracer
     );
 
     // librvvi_text.so DPI shim (RTL-only writer; no GVSOC dependency).
-    import "DPI-C" function void rvviTextOpen(input string path,
+    import "DPI-C" function int  rvviTextOpen(input string path,
                                               input int unsigned ilen,
                                               input int unsigned xlen,
                                               input int unsigned flen,
@@ -157,10 +157,13 @@ module uvmt_cv32e40p_rvvi_text_tracer
     end
 
     // Open dut.rvvi (override path with +rvvi_text_dut=<path>) and write header.
+    // A failed open must be loud: the writer silently drops every line after
+    // it, and a passing run with no trace file is easy to miss in a batch.
     string dut_path = "dut.rvvi";
     initial begin
         void'($value$plusargs("rvvi_text_dut=%s", dut_path));
-        rvviTextOpen(dut_path, ILEN, XLEN, FLEN, 0, NHART, RETIRE);
+        if (!rvviTextOpen(dut_path, ILEN, XLEN, FLEN, 0, NHART, RETIRE))
+            $error("[rvvi_text_tracer] cannot open '%s' - no dut.rvvi will be written", dut_path);
     end
 
     // Flush and close at end of simulation.

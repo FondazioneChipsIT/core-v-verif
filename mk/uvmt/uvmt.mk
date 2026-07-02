@@ -376,6 +376,32 @@ endif
 endif
 
 ###############################################################################
+# RVVI-TEXT trace validation.
+# Runs the reference checker from the vendored RVVI tree on the trace files
+# produced by an RVVI_TRACE=YES run (and/or RVVI_TEXT_TRACE=<dir>):
+#   make check-rvvi RVVI_TRACE_DIR=<dir with dut.rvvi / ref.rvvi>
+# Checks whichever of the two files exists; fails if neither does, or if the
+# checker rejects one of them.
+RVVI_TRACE_DIR    ?= .
+RVVI_TEXT_CHECKER ?= $(CORE_V_VERIF)/vendor_lib/gvsoc_rvvi/RVVI/source/host/rvvi/rvviTextChecker.py
+
+.PHONY: check-rvvi
+check-rvvi:
+	@found=0; sts=0; \
+	for f in $(RVVI_TRACE_DIR)/dut.rvvi $(RVVI_TRACE_DIR)/ref.rvvi; do \
+		if [ -f "$$f" ]; then \
+			found=1; \
+			echo "check-rvvi: $$f"; \
+			python3 $(RVVI_TEXT_CHECKER) "$$f" || sts=1; \
+		fi; \
+	done; \
+	if [ $$found -eq 0 ]; then \
+		echo "check-rvvi: no dut.rvvi/ref.rvvi in '$(RVVI_TRACE_DIR)'" >&2; \
+		exit 1; \
+	fi; \
+	exit $$sts
+
+###############################################################################
 # Clean up your mess!
 #   1. Clean all generated files of the C and assembler tests
 #   2. Simulator-specific clean targets are in ./<simulator>.mk

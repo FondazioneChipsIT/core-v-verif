@@ -3,8 +3,10 @@
 // Drives the rvviTrace interface from the DUT RVFI and emits dut.rvvi through
 // the librvvi_text.so DPI shim -- no GVSOC bridge, no step-n-compare.
 
-// RVVI Infrastructure (interface + its DPI package)
-${CORE_V_VERIF}/vendor_lib/gvsoc_rvvi/RVVI/source/host/rvvi/rvviApiPkg.sv
+// RVVI infrastructure: the interface only. rvviApiPkg.sv is deliberately NOT
+// compiled here -- nothing in the RTL-only build references it (the tracer
+// talks DPI to librvvi_text, not to the RVVI API), and its ~60 DPI imports
+// would sit unresolved in the snapshot.
 ${CORE_V_VERIF}/vendor_lib/gvsoc_rvvi/RVVI/source/host/rvvi/rvviTrace.sv
 
 // DUT-only RVVI-TEXT tracer
