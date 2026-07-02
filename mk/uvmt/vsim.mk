@@ -213,6 +213,14 @@ VSIM_SCRIPT_DIR	   = $(abspath $(MAKE_PATH)/../tools/vsim)
 
 VSIM_UVM_ARGS      = +incdir+$(UVM_HOME)/src $(UVM_HOME)/src/uvm_pkg.sv
 
+# RVVI_TEXT_TRACE=<dir> — create the directory up front: the RVVI-TEXT
+# writers fopen() into it at time zero and fail (loudly) if it is missing.
+ifneq ($(RVVI_TEXT_TRACE),)
+  ifneq ($(RVVI_TEXT_TRACE),1)
+    $(shell mkdir -p $(RVVI_TEXT_TRACE))
+  endif
+endif
+
 ifeq ($(call IS_YES,$(USE_ISS)),YES)
   VSIM_FLAGS += +USE_ISS
   ifeq ($(ISS),GVSOC)
