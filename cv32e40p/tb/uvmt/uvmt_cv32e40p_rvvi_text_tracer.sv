@@ -187,6 +187,13 @@ module uvmt_cv32e40p_rvvi_text_tracer
     `RVVI_SET_TRAP_CSR(`CSR_MTVAL_ADDR, mtval)
 `endif
 
+    // A trap entry flushes the killed pipeline slot and RVFI reports it as one
+    // bogus row: pc_rdata=0 with insn = the synthesized jump to the handler.
+    // The artifact is recognized by state -- it is the row immediately following
+    // a trap row -- not by value, so a genuine retire at address 0 (test
+    // trampolines) is not confused with it and is still traced.
+    logic post_trap_flush [NHART] = '{default: 1'b0};
+
     // Per-retire: extract the architectural write-set and emit one RVVI-TEXT line.
     // Mirrors the DUT-side push loop of rvvi_trace2api.sv, minus all rvviRef*/ISS
     // steps -- the line goes straight to the DUT-only writer.
@@ -194,8 +201,10 @@ module uvmt_cv32e40p_rvvi_text_tracer
         for (int h = 0; h < NHART; h++) begin
             for (int r = 0; r < RETIRE; r++) begin
                 if (rvvi.valid[h][r]) begin
-                    // Skip pipeline-flush artifacts (PC=0); always allow traps.
-                    if (rvvi.trap[h][r] || rvvi.pc_rdata[h][r] != 0) begin
+                    // Drop only the trap-redirect flush row (see post_trap_flush
+                    // above); trap rows themselves always go through.
+                    if (rvvi.trap[h][r] ||
+                        !(post_trap_flush[h] && rvvi.pc_rdata[h][r] == 0)) begin
 
                         // GPR write-set (x0 hardwired zero -> skip).
                         for (int i = 1; i < 32; i++)
@@ -237,6 +246,12 @@ module uvmt_cv32e40p_rvvi_text_tracer
                         rvviTextWrite(rvvi.pc_rdata[h][r], rvvi.insn[h][r],
                                       rvvi.trap[h][r] ? 8'd1 : 8'd0);
                     end // architectural retire guard
+                    else
+                        $display("[rvvi_text_tracer] dropped trap-redirect flush row (insn=0x%08x)",
+                                 rvvi.insn[h][r]);
+
+                    // Arm the filter: the row after a trap row is the flush artifact.
+                    post_trap_flush[h] = rvvi.trap[h][r];
 
                     // Drain (and discard) the interrupt/haltreq nets the common
                     // wiring pushed; without a reference model nobody else pops.
