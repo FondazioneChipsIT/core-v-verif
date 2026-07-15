@@ -63,6 +63,9 @@ class uvme_cv32e40p_cntxt_c extends uvm_object;
       `uvm_field_event(sample_cntxt_e, UVM_DEFAULT)
    `uvm_object_utils_end
 
+   // Zero-fill is also a contract with the GVSOC reference platform, whose
+   // background sparse memory reads 0 for never-written locations: changing
+   // this default diverges every ISS=GVSOC co-simulation by construction.
    constraint mem_cfg_cons {
       mem.mem_default == MEM_DEFAULT_0;
    }
