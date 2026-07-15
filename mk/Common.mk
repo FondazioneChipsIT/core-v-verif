@@ -191,6 +191,8 @@ RVVI_TRACE ?= NO
 # CFG_LC patterns: "pulp" -> COREV_PULP, "fpu" -> FPU, "zfinx" -> ZFINX,
 #                  "cluster" -> COREV_CLUSTER.
 # These map to --parameter flags passed to gvrun at runtime.
+# The CFG name is the contract: a new CFG must embed these substrings, or the
+# reference model is silently configured without the corresponding feature.
 # Note: "no_pulp" and "default" must NOT enable COREV_PULP.
 # Filter out "no_pulp" before checking for "pulp" substring.
 _cfg_no_nopulp := $(subst no_pulp,,$(CFG_LC))

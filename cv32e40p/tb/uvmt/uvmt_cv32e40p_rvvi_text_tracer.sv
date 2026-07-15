@@ -13,100 +13,14 @@
 // driving wiring out (`ifndef USE_ISS), reads the interface, and remains the
 // sole dut.rvvi producer while the bridge writes ref.rvvi.
 //
-// The RVFI->RVVI macros below are a guarded copy of the ones in
-// uvmt_cv32e40p_gvsoc_wrap.sv (kept identical).  They are duplicated rather than
-// shared to avoid touching the production co-sim wrap; `ifndef guards let the
-// two coexist harmlessly if both files are ever compiled together.  TODO:
-// extract the shared macros into a common .svh once sim-validated.
+// The RVFI->RVVI macros are shared with uvmt_cv32e40p_gvsoc_wrap.sv via
+// uvmt_cv32e40p_rvfi2rvvi_macros.svh.
 // =============================================================================
 
 `ifndef __UVMT_CV32E40P_RVVI_TEXT_TRACER_SV__
 `define __UVMT_CV32E40P_RVVI_TEXT_TRACER_SV__
 
-`ifndef DUT_PATH
-`define DUT_PATH dut_wrap.cv32e40p_tb_wrapper_i
-`endif
-`ifndef RVFI_IF
-`define RVFI_IF  `DUT_PATH.rvfi_i
-`endif
-`ifndef STRINGIFY
-`define STRINGIFY(x) `"x`"
-`endif
-
-// CSR = (wdata & wmask) | (rdata & ~wmask), with write-back pulse on change.
-`ifndef RVVI_SET_CSR
-`define RVVI_SET_CSR(CSR_ADDR, CSR_NAME) \
-    bit csr_``CSR_NAME``_wb; \
-    wire [31:0] csr_``CSR_NAME``_w; \
-    wire [31:0] csr_``CSR_NAME``_r; \
-    assign csr_``CSR_NAME``_w = `RVFI_IF.rvfi_csr_``CSR_NAME``_wdata &   `RVFI_IF.rvfi_csr_``CSR_NAME``_wmask; \
-    assign csr_``CSR_NAME``_r = `RVFI_IF.rvfi_csr_``CSR_NAME``_rdata & ~(`RVFI_IF.rvfi_csr_``CSR_NAME``_wmask); \
-    assign rvvi.csr[0][0][``CSR_ADDR]    = csr_``CSR_NAME``_w | csr_``CSR_NAME``_r; \
-    assign rvvi.csr_wb[0][0][``CSR_ADDR] = csr_``CSR_NAME``_wb; \
-    always @(rvvi.csr[0][0][``CSR_ADDR]) begin \
-        csr_``CSR_NAME``_wb = 1; \
-    end \
-    always @(posedge rvvi.clk) begin \
-        if (`RVFI_IF.rvfi_valid && csr_``CSR_NAME``_wb) begin \
-            csr_``CSR_NAME``_wb <= 0; \
-        end \
-    end
-`endif
-
-// Trap-written CSRs (mepc/mcause/mtval/mstatus): hardware trap writes set
-// wmask=0, so take wdata directly; otherwise use the standard formula.
-`ifndef RVVI_SET_TRAP_CSR
-`define RVVI_SET_TRAP_CSR(CSR_ADDR, CSR_NAME) \
-    bit csr_``CSR_NAME``_wb; \
-    wire [31:0] csr_``CSR_NAME``_wdata_raw; \
-    wire [31:0] csr_``CSR_NAME``_wmask_raw; \
-    wire [31:0] csr_``CSR_NAME``_rdata_raw; \
-    assign csr_``CSR_NAME``_wdata_raw = `RVFI_IF.rvfi_csr_``CSR_NAME``_wdata; \
-    assign csr_``CSR_NAME``_wmask_raw = `RVFI_IF.rvfi_csr_``CSR_NAME``_wmask; \
-    assign csr_``CSR_NAME``_rdata_raw = `RVFI_IF.rvfi_csr_``CSR_NAME``_rdata; \
-    assign rvvi.csr[0][0][``CSR_ADDR]    = (csr_``CSR_NAME``_wmask_raw == 32'h0) \
-        ? csr_``CSR_NAME``_wdata_raw \
-        : (csr_``CSR_NAME``_wdata_raw & csr_``CSR_NAME``_wmask_raw) \
-          | (csr_``CSR_NAME``_rdata_raw & ~csr_``CSR_NAME``_wmask_raw); \
-    assign rvvi.csr_wb[0][0][``CSR_ADDR] = csr_``CSR_NAME``_wb; \
-    always @(rvvi.csr[0][0][``CSR_ADDR]) begin \
-        csr_``CSR_NAME``_wb = 1; \
-    end \
-    always @(posedge rvvi.clk) begin \
-        if (`RVFI_IF.rvfi_valid && csr_``CSR_NAME``_wb) begin \
-            csr_``CSR_NAME``_wb <= 0; \
-        end \
-    end
-`endif
-
-`ifndef RVVI_SET_CSR_VEC
-`define RVVI_SET_CSR_VEC(CSR_ADDR, CSR_NAME, CSR_ID) \
-    bit csr_``CSR_NAME````CSR_ID``_wb; \
-    wire [31:0] csr_``CSR_NAME````CSR_ID``_w; \
-    wire [31:0] csr_``CSR_NAME````CSR_ID``_r; \
-    assign csr_``CSR_NAME````CSR_ID``_w = `RVFI_IF.rvfi_csr_``CSR_NAME``_wdata[``CSR_ID] &   `RVFI_IF.rvfi_csr_``CSR_NAME``_wmask[``CSR_ID]; \
-    assign csr_``CSR_NAME````CSR_ID``_r = `RVFI_IF.rvfi_csr_``CSR_NAME``_rdata[``CSR_ID] & ~(`RVFI_IF.rvfi_csr_``CSR_NAME``_wmask[``CSR_ID]); \
-    assign rvvi.csr[0][0][``CSR_ADDR]    = csr_``CSR_NAME````CSR_ID``_w | csr_``CSR_NAME````CSR_ID``_r; \
-    assign rvvi.csr_wb[0][0][``CSR_ADDR] = csr_``CSR_NAME````CSR_ID``_wb; \
-    always @(rvvi.csr[0][0][``CSR_ADDR]) begin \
-        csr_``CSR_NAME````CSR_ID``_wb = 1; \
-    end \
-    always @(posedge rvvi.clk) begin \
-        if (`RVFI_IF.rvfi_valid && csr_``CSR_NAME````CSR_ID``_wb) begin \
-            csr_``CSR_NAME````CSR_ID``_wb <= 0; \
-        end \
-    end
-`endif
-
-`ifndef RVVI_WRITE_IRQ
-`define RVVI_WRITE_IRQ(IRQ_NAME, IRQ_IDX) \
-    wire   irq_``IRQ_NAME; \
-    assign irq_``IRQ_NAME = `DUT_PATH.irq_i[IRQ_IDX]; \
-    always @(irq_``IRQ_NAME) begin \
-        void'(rvvi.net_push(`STRINGIFY(``IRQ_NAME), irq_``IRQ_NAME)); \
-    end
-`endif
-
+`include "uvmt_cv32e40p_rvfi2rvvi_macros.svh"
 `include "uvmt_cv32e40p_csr_defs.svh"
 
 module uvmt_cv32e40p_rvvi_text_tracer
