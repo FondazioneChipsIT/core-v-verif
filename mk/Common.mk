@@ -179,8 +179,16 @@ GVSOC_RVVI_HOME  = $(CORE_V_VERIF)/vendor_lib/gvsoc_rvvi
 # libgvsoc_rvvi_zfinx.so is compiled with ISS_SINGLE_REGFILE=1 to match the ZFINX
 # ISS model struct layout (fregs[] removed). Without this, gvsoc_engine.cpp accesses
 # exec.current_insn and regfile fields at wrong offsets -> wrong PC / register values.
+# GVSOC_ISS_V2=YES (opt-in) runs the reference model on the iss_v2 core:
+# same bridge API, v2 library and cv32e40p-v2-standalone config templates.
+GVSOC_ISS_V2 ?= NO
+ifeq ($(call IS_YES,$(GVSOC_ISS_V2)),YES)
+GVSOC_RVVI_MODEL = $(GVSOC_RVVI_HOME)/$(if $(filter True,$(GVSOC_ZFINX)),libgvsoc_rvvi_v2_zfinx.so,libgvsoc_rvvi_v2.so)
+export GVSOC_CONFIG ?= $(GVSOC_RVVI_HOME)/gvsoc_config_v2_$(CFG).json
+else
 GVSOC_RVVI_MODEL = $(GVSOC_RVVI_HOME)/$(if $(filter True,$(GVSOC_ZFINX)),libgvsoc_rvvi_zfinx.so,libgvsoc_rvvi.so)
 export GVSOC_CONFIG ?= $(GVSOC_RVVI_HOME)/gvsoc_config_$(CFG).json
+endif
 
 # librvvi_text.so: standalone RVVI-TEXT writer for the RTL-only trace mode
 # (RVVI_TRACE=YES, no ISS). Built by the gvsoc_rvvi Makefile ('make' / 'make all').
