@@ -125,7 +125,7 @@ run: generate_gvsoc_dpi_config
 # divergence (WONTFIX), so the DPI config is generated single-core.
 ifeq ($(call IS_YES,$(GVSOC_ISS_V2)),YES)
 # iss_v2 reference: the core configuration is baked into the target name.
-GVSOC_V2_TARGET = cv32e40p-v2-standalone$(if $(filter True,$(GVSOC_ZFINX)),-zfinx,$(if $(filter True,$(GVSOC_FPU)),-fpu,))
+GVSOC_V2_TARGET = cv32e40p-v2-standalone$(if $(filter True,$(GVSOC_ZFINX)),-zfinx,$(if $(filter True,$(GVSOC_FPU)),-fpu,$(if $(filter True,$(GVSOC_COREV_PULP)),,-nopulp)))
 generate_gvsoc_dpi_config:
 	@echo "--- Generating GVSOC config for DPI (CFG=$(CFG), iss_v2) ---"
 	$(MAKE) -C $(GVSOC_RVVI_HOME) config-v2 \
