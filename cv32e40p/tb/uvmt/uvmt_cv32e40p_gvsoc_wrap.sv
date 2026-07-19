@@ -144,6 +144,14 @@ module uvmt_cv32e40p_gvsoc_wrap
         void'(rvviRefCsrCompareEnable(hart_id, `CSR_TSELECT_ADDR,   RVVI_TRUE));
         void'(rvviRefCsrCompareEnable(hart_id, `CSR_TDATA2_ADDR,    RVVI_TRUE));
         void'(rvviRefCsrCompareEnable(hart_id, `CSR_TDATA3_ADDR,    RVVI_TRUE));
+        // Hwloop CSRs (PULP builds). On non-PULP builds both sides hold the
+        // reset value, so the compare never fires.
+        void'(rvviRefCsrCompareEnable(hart_id, `CSR_LPSTART0_ADDR, RVVI_TRUE));
+        void'(rvviRefCsrCompareEnable(hart_id, `CSR_LPEND0_ADDR,   RVVI_TRUE));
+        void'(rvviRefCsrCompareEnable(hart_id, `CSR_LPCOUNT0_ADDR, RVVI_TRUE));
+        void'(rvviRefCsrCompareEnable(hart_id, `CSR_LPSTART1_ADDR, RVVI_TRUE));
+        void'(rvviRefCsrCompareEnable(hart_id, `CSR_LPEND1_ADDR,   RVVI_TRUE));
+        void'(rvviRefCsrCompareEnable(hart_id, `CSR_LPCOUNT1_ADDR, RVVI_TRUE));
         // FP status CSRs (FPU builds only). Flag accrual (fflags / fcsr[4:0])
         // is not bit-exact between the RTL FPU and the ISS float model (e.g.
         // underflow raised on exact denormal results, invalid accrued by
