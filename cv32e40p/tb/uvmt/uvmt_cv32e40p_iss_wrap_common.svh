@@ -38,6 +38,10 @@
     assign rvvi.trap[0][0]     = `RVFI_IF.rvfi_trap.trap;
     assign rvvi.intr[0][0]     = `RVFI_IF.rvfi_intr.intr;
     assign rvvi.mode[0][0]     = `RVFI_IF.rvfi_mode;
+    // rvfi_dbg_mode is an ENTRY marker (1 only on the instruction that enters
+    // debug mode, FSM in DBG_TAKEN_*), not the persistent in-debug state; the
+    // bridge debug-entry hook triggers on its 0->1 edge.
+    assign rvvi.debug_mode[0][0] = `RVFI_IF.rvfi_dbg_mode;
     assign rvvi.ixl[0][0]      = `RVFI_IF.rvfi_ixl;
     assign rvvi.pc_rdata[0][0] = `RVFI_IF.rvfi_pc_rdata;
     //  assign rvvi.pc_wdata[0][0] = `RVFI_IF.rvfi_pc_wdata;
