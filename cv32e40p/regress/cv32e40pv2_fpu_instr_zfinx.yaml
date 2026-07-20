@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 # Header
-name: cv32e40pv2_fpu_instr
+name: cv32e40pv2_fpu_instr_zfinx
 description: regression for CV32E40Pv2, focused on FP instructions
 
 # List of builds
@@ -16,43 +16,43 @@ builds:
   uvmt_cv32e40p:
     cmd: make comp comp_corev-dv
     dir: cv32e40p/sim/uvmt
-    cfg: pulp_fpu
+    cfg: pulp_fpu_zfinx
 
 # List of tests
 tests:
   corev_rand_fp_instr_data_fwd_test:
     build: uvmt_cv32e40p
-    test_cfg: floating_pt_instr_en
+    test_cfg: floating_pt_zfinx_instr_en
     dir: cv32e40p/sim/uvmt
     cmd: make gen_corev-dv test TEST=corev_rand_fp_instr_data_fwd_test CFG_PLUSARGS="+UVM_TIMEOUT=1000000"
 
   corev_rand_fp_instr_mlt_cyc_test:
     build: uvmt_cv32e40p
-    test_cfg: floating_pt_instr_en
+    test_cfg: floating_pt_zfinx_instr_en
     dir: cv32e40p/sim/uvmt
     cmd: make gen_corev-dv test TEST=corev_rand_fp_instr_mlt_cyc_test CFG_PLUSARGS="+UVM_TIMEOUT=1000000"
 
   corev_rand_fp_instr_sanity_test:
     build: uvmt_cv32e40p
-    test_cfg: floating_pt_instr_en
+    test_cfg: floating_pt_zfinx_instr_en
     dir: cv32e40p/sim/uvmt
     cmd: make gen_corev-dv test TEST=corev_rand_fp_instr_sanity_test CFG_PLUSARGS="+UVM_TIMEOUT=1000000"
 
   corev_rand_fp_instr_test:
     build: uvmt_cv32e40p
-    test_cfg: floating_pt_instr_en
+    test_cfg: floating_pt_zfinx_instr_en
     dir: cv32e40p/sim/uvmt
     cmd: make gen_corev-dv test TEST=corev_rand_fp_instr_test CFG_PLUSARGS="+UVM_TIMEOUT=1000000"
 
   corev_rand_fp_instr_w_special_ops_test:
     build: uvmt_cv32e40p
-    test_cfg: floating_pt_instr_en
+    test_cfg: floating_pt_zfinx_instr_en
     dir: cv32e40p/sim/uvmt
     cmd: make gen_corev-dv test TEST=corev_rand_fp_instr_w_special_ops_test CFG_PLUSARGS="+UVM_TIMEOUT=1000000"
 
   corev_fp_mstatus_fs_test:
     build: uvmt_cv32e40p
-    test_cfg: floating_pt_instr_en
+    test_cfg: floating_pt_zfinx_instr_en
     dir: cv32e40p/sim/uvmt
     cmd: make gen_corev-dv test TEST=corev_fp_mstatus_fs_test CFG_PLUSARGS="+UVM_TIMEOUT=1000000"
     num: 1
