@@ -77,10 +77,13 @@ node_modules/
 traces/
 bin/all_nrs/
 
-# Local working config (kept out of the repo)
-/.claude/
+# Claude Code: CLAUDE.md and .claude/settings.json are versioned (shared
+# project guidance); per-user session state stays local.
+/.claude/settings.local.json
+/.claude/agent-memory/
+/.claude/worktrees/
+/.claude/*.lock
 /IDENTITY.md
-/CLAUDE.md
 
 # Regression artifacts (large output, never committed)
 cv32e40p/sim/uvmt/regress_results/
