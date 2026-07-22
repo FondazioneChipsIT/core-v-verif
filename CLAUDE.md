@@ -72,6 +72,11 @@ make test TEST=... CFG=pulp                          # TB configs: pulp / pulp_f
 
 - Commit style: `<type>: <description>` (feat / fix / chore / docs / test), no
   AI attribution lines.
+- **Before every commit/push, update the shared project docs** so collaborators
+  stay current: this `CLAUDE.md`, the submodule docs
+  (`vendor_lib/gvsoc_rvvi/docs/*`), and any test/known-open lists whose state
+  the change affects (e.g. the `test/quick_val.sh` header). A commit that
+  changes behavior but leaves the docs describing the old state is incomplete.
 - Large artifacts (waveforms, regression logs, validation evidence) go OUTSIDE
   the repo (e.g. `/data2/<user>/validation-evidence/`), never committed.
 - Trace files can exceed 100k lines — grep them, never read them whole.
