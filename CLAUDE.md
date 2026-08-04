@@ -54,10 +54,12 @@ make test TEST=... CFG=pulp                          # TB configs: pulp / pulp_f
   variants) + `gvsoc_engine_v2.cpp` (iss_v2 engine) / `gvsoc_engine.cpp` (v1).
 - ISS models (sub-submodule `gvsoc/`): common core in
   `gvsoc/core/models/cpu/iss_v2/`, CV32E40P personality (CSR/IRQ/exceptions) in
-  `gvsoc/pulp/pulp/cpu/iss_v2/cores/cv32e40p/`.
+  `gvsoc/pulp/cpu/iss_v2/{include,src}/cores/cv32e40p/`.
 - Validation gate: `test/quick_val.sh <outdir>` — one run of every test type in
   each TB config. Read the SUMMARY only AFTER the `quick_val end:` line.
-- Formatter/tracer unit tests: `make check-rvvi`.
+- Formatter/tracer unit tests: `make -C vendor_lib/gvsoc_rvvi test`.
+  (`make check-rvvi RVVI_TRACE_DIR=<dir>` is the RVVI-TEXT conformance checker,
+  a different thing.)
 
 ## Git topology
 
