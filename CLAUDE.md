@@ -35,7 +35,6 @@ Never install packages system-wide; use micromamba environments.
 make comp                                            # compile testbench
 make test TEST=hello-world                           # RTL only
 make test TEST=hello-world USE_ISS=YES ISS=GVSOC     # co-sim step-and-compare
-make test TEST=hello-world ISS=GVSOC_TRACE COMP=NO   # trace comparison (RTL vs GVSOC standalone)
 make test TEST=... CFG=pulp                          # TB configs: pulp / pulp_fpu / pulp_fpu_zfinx
 ```
 
