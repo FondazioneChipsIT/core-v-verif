@@ -10,7 +10,7 @@
 # Prerequisites (override per host via environment variables):
 #   - micromamba env   (MAMBA_ENV, default gvsoc_env_3_12)
 #   - Questa module    (QUESTA_MODULE, default questa/2025.3)
-#   - libgvsoc_rvvi.so built in vendor_lib/gvsoc_rvvi/
+#   - libgvsoc_rvvi_v2.so built in vendor_lib/gvsoc_rvvi/
 
 set -u
 set -o pipefail

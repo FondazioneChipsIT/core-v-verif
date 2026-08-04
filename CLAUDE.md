@@ -38,8 +38,8 @@ make test TEST=hello-world USE_ISS=YES ISS=GVSOC     # co-sim step-and-compare
 make test TEST=... CFG=pulp                          # TB configs: pulp / pulp_fpu / pulp_fpu_zfinx
 ```
 
-- The **iss_v2** reference core is the default (`GVSOC_ISS_V2 ?= YES` in
-  `mk/Common.mk`); set `GVSOC_ISS_V2=NO` for the legacy v1 core.
+- The **iss_v2** core is the only reference model; `GVSOC_ISS_V2` no longer
+  exists as a selector (the TB Makefile errors out if it is set to `NO`).
 - Gotcha: per-CFG TB objects are NOT interchangeable between RTL-only and
   co-sim runs — recompile when switching.
 
@@ -47,10 +47,11 @@ make test TEST=... CFG=pulp                          # TB configs: pulp / pulp_f
 
 - Rebuild after ANY C++ change:
   `cd vendor_lib/gvsoc_rvvi && micromamba run -n gvsoc_env_3_12 make gvsoc && micromamba run -n gvsoc_env_3_12 make`
-  Always let it rebuild **all** `.so` variants (v1/v2/zfinx share sources; a
-  stale variant causes ABI skew and deadlocks at the first retire).
-- Bridge C++: `rvvi_api2gvsoc.cpp` (RVVI API implementation, shared by all
-  variants) + `gvsoc_engine_v2.cpp` (iss_v2 engine) / `gvsoc_engine.cpp` (v1).
+  Always let it rebuild **all** `.so` variants (standard/zfinx share
+  sources; a stale variant causes ABI skew and deadlocks at the first
+  retire).
+- Bridge C++: `rvvi_api2gvsoc.cpp` (RVVI API implementation, shared by both
+  variants) + `gvsoc_engine_v2.cpp` (iss_v2 engine).
 - ISS models (sub-submodule `gvsoc/`): common core in
   `gvsoc/core/models/cpu/iss_v2/`, CV32E40P personality (CSR/IRQ/exceptions) in
   `gvsoc/pulp/cpu/iss_v2/{include,src}/cores/cv32e40p/`.

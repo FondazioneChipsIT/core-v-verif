@@ -123,8 +123,7 @@ run: generate_gvsoc_dpi_config
 # COREV_CLUSTER is intentionally NOT passed here (unlike the GVSOC_TRACE recipes
 # generate_gvsoc_config / run_gvsoc above): the cluster model is a known DPI
 # divergence (WONTFIX), so the DPI config is generated single-core.
-ifeq ($(call IS_YES,$(GVSOC_ISS_V2)),YES)
-# iss_v2 reference: the core configuration is baked into the target name.
+# The core configuration is baked into the iss_v2 target name.
 GVSOC_V2_TARGET = cv32e40p-v2-standalone$(if $(filter True,$(GVSOC_ZFINX)),-zfinx,$(if $(filter True,$(GVSOC_FPU)),-fpu,$(if $(filter True,$(GVSOC_COREV_PULP)),,-nopulp)))
 generate_gvsoc_dpi_config:
 	@echo "--- Generating GVSOC config for DPI (CFG=$(CFG), iss_v2) ---"
@@ -134,20 +133,6 @@ generate_gvsoc_dpi_config:
 ifeq ($(GVSOC_ZFINX),True)
 	@echo "--- Building ZFINX iss_v2 GVSOC bridge ---"
 	$(MAKE) -C $(GVSOC_RVVI_HOME) libgvsoc_rvvi_v2_zfinx.so
-endif
-else
-generate_gvsoc_dpi_config:
-	@echo "--- Generating GVSOC config for DPI (CFG=$(CFG)) ---"
-	$(MAKE) -C $(GVSOC_RVVI_HOME) config \
-		BINARY=$(GVSOC_ELF) \
-		COREV_PULP=$(GVSOC_COREV_PULP) \
-		FPU=$(GVSOC_FPU) \
-		ZFINX=$(GVSOC_ZFINX) \
-		NUM_MHPMCOUNTERS=$(GVSOC_NUM_MHPMCOUNTERS)
-ifeq ($(GVSOC_ZFINX),True)
-	@echo "--- Building ZFINX GVSOC bridge (ISS_SINGLE_REGFILE=1) ---"
-	$(MAKE) -C $(GVSOC_RVVI_HOME) libgvsoc_rvvi_zfinx.so
-endif
 endif
 
 endif

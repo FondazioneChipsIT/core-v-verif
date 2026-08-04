@@ -175,21 +175,16 @@ OVP_MODEL_DPI   = $(DV_OVPM_MODEL)/bin/Linux64/imperas_CV32.dpi.so
 # GVSOC Instruction Set Simulator
 
 GVSOC_RVVI_HOME  = $(CORE_V_VERIF)/vendor_lib/gvsoc_rvvi
-# Select the correct GVSOC bridge .so based on ZFINX config.
-# libgvsoc_rvvi_zfinx.so is compiled with ISS_SINGLE_REGFILE=1 to match the ZFINX
-# ISS model struct layout (fregs[] removed). Without this, gvsoc_engine.cpp accesses
-# exec.current_insn and regfile fields at wrong offsets -> wrong PC / register values.
-# GVSOC_ISS_V2 selects the reference model core: YES (default) runs the
-# iss_v2 core (v2 library and cv32e40p-v2-standalone config templates),
-# NO falls back to the legacy v1 core. Same bridge API either way.
-GVSOC_ISS_V2 ?= YES
-ifeq ($(call IS_YES,$(GVSOC_ISS_V2)),YES)
+# The reference model runs on the iss_v2 core. Select the bridge .so based
+# on the ZFINX config: libgvsoc_rvvi_v2_zfinx.so is compiled with the ZFINX
+# ISS regfile layout (fregs[] removed); with the wrong variant the engine
+# reads the register file at wrong offsets -> wrong PC / register values.
+# GVSOC_ISS_V2 is no longer a selector: the legacy v1 core was removed.
+ifeq ($(call IS_NO,$(GVSOC_ISS_V2)),NO)
+$(error GVSOC_ISS_V2=NO is not supported anymore: the legacy v1 reference core was removed, the iss_v2 core is the only reference model)
+endif
 GVSOC_RVVI_MODEL = $(GVSOC_RVVI_HOME)/$(if $(filter True,$(GVSOC_ZFINX)),libgvsoc_rvvi_v2_zfinx.so,libgvsoc_rvvi_v2.so)
 export GVSOC_CONFIG ?= $(GVSOC_RVVI_HOME)/gvsoc_config_v2_$(CFG).json
-else
-GVSOC_RVVI_MODEL = $(GVSOC_RVVI_HOME)/$(if $(filter True,$(GVSOC_ZFINX)),libgvsoc_rvvi_zfinx.so,libgvsoc_rvvi.so)
-export GVSOC_CONFIG ?= $(GVSOC_RVVI_HOME)/gvsoc_config_$(CFG).json
-endif
 
 # librvvi_text.so: standalone RVVI-TEXT writer for the RTL-only trace mode
 # (RVVI_TRACE=YES, no ISS). Built by the gvsoc_rvvi Makefile ('make' / 'make all').
