@@ -36,12 +36,17 @@ module uvmt_cv32e40p_gvsoc_wrap
     // FLEN 32 and its header diverges from the tracer's on no-FPU configs.
     import "DPI-C" function void rvviBridgeSetFlen(input int unsigned flen);
 
-    // Instantiate Open-Source Sync Bridge
+    // Instantiate Open-Source Sync Bridge. The RVFI data-memory view feeds
+    // the bridge's volatile memory window sync (rvviRefMemorySetVolatile).
     rvvi_trace2api #(
         .NHART(1),
         .RETIRE(1)
     )
-    gvsoc_sync(rvvi);
+    gvsoc_sync(
+        .rvvi          (rvvi),
+        .dut_mem_addr  (`RVFI_IF.rvfi_mem_addr),
+        .dut_mem_rmask (`RVFI_IF.rvfi_mem_rmask)
+    );
 
     ////////////////////////////////////////////////////////////////////////////
     // ISS completion watchdog.
@@ -120,6 +125,13 @@ module uvmt_cv32e40p_gvsoc_wrap
             void'(rvviRefCsrSetVolatile(hart_id, 32'hB83 + i));  // mhpmcounterh3..31
             void'(rvviRefCsrSetVolatile(hart_id, 32'h323 + i));  // mhpmevent3..31
         end
+
+        // --- Volatile memory: TB virtual-peripheral registers no functional
+        // model can predict (random-number generator @ 0x15001000, cycle
+        // counter @ 0x15001004). Same window the Imperas wrap declares; a
+        // DUT load from here has its rd copied into the ISS instead of
+        // compared (bridge volatile memory window sync).
+        void'(rvviRefMemorySetVolatile('h15001000, 'h15001007));
 
         // --- Compared CSRs: modeled by the GVSOC engine ---
         void'(rvviRefCsrCompareEnable(hart_id, `CSR_MISA_ADDR,          RVVI_TRUE));

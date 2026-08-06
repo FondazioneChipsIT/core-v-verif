@@ -15,6 +15,11 @@
 `define DUT_PATH dut_wrap.cv32e40p_tb_wrapper_i
 `endif
 `ifndef RVFI_IF
+// The core's RAW RVFI port bundle (cv32e40p_tb_wrapper.rvfi_i: NRET=1,
+// flat 32-bit signals, rmask/wmask bit-per-BIT via be_to_mask). NOT the
+// generic multi-retire uvma_rvfi interface also named rvfi_i in
+// uvmt_cv32e40p_tb.sv, whose consumers slice with XLEN*n +: XLEN - no
+// slicing is needed (or correct) here.
 `define RVFI_IF  `DUT_PATH.rvfi_i
 `endif
 `ifndef STRINGIFY
