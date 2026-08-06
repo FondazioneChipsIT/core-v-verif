@@ -45,7 +45,13 @@ module uvmt_cv32e40p_gvsoc_wrap
     gvsoc_sync(
         .rvvi          (rvvi),
         .dut_mem_addr  (`RVFI_IF.rvfi_mem_addr),
-        .dut_mem_rmask (`RVFI_IF.rvfi_mem_rmask)
+        .dut_mem_rmask (`RVFI_IF.rvfi_mem_rmask),
+        // Tracer-fidelity sidecar (+rvvi_tracer_fidelity): raw rvfi_intr
+        // bundle and rvfi_dbg entry cause from the core tracer. rvfi_intr
+        // needs the tracer patch that drives it (undriven upstream);
+        // rvfi_dbg has always been driven.
+        .dut_intr      (`RVFI_IF.rvfi_intr),
+        .dut_dbg       (`RVFI_IF.rvfi_dbg)
     );
 
     ////////////////////////////////////////////////////////////////////////////
