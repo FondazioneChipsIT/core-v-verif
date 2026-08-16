@@ -57,20 +57,64 @@ module uvmt_cv32e40p_gvsoc_wrap
     ////////////////////////////////////////////////////////////////////////////
     // ISS completion watchdog.
     //
-    // When the firmware writes to the exit device, rvviRefEventStep() schedules
-    // $finish via vpi_control. If the DUT enters WFI before that $finish is
-    // processed, the clocked always block in rvvi_trace2api never fires
-    // again and the simulator hangs. This initial block polls rvviRefIsFinished()
-    // and forces $finish from a non-clocked context, which the simulator can
-    // always service regardless of DUT clock state.
+    // When the ISS-side firmware reaches the exit device, rvviRefIsFinished()
+    // turns true. Normally the DUT reaches its own end-of-test write to the
+    // status virtual peripheral too, the firmware test drops its objection
+    // (uvmt_cv32e40p_firmware_test.sv run_phase wait) and run_test() winds
+    // down the phases: phase_ended(final) sets sim_finished and end_of_test
+    // prints an honest verdict.
+    //
+    // If instead the DUT is parked in an unwakeable WFI (ISS over-ran it,
+    // e.g. through the resync machinery), that write never comes and the run
+    // would burn wall-clock until the test_cfg watchdog (100 ms sim). This
+    // block reaps such runs: after the ISS finishes it grants the DUT a
+    // grace window (+iss_finish_grace_ns, default 2 ms sim time) and then
+    // forces $finish from a non-clocked context.
+    //
+    // HONESTY CONTRACT: the forced $finish never upgrades a verdict. When it
+    // fires, sim_finished is still 0 and end_of_test reports FAILED-ABORTED.
+    // A clean end is only ever produced by the normal UVM shutdown, which
+    // checks tests_passed/tests_failed/exit_value in the final phase and
+    // folds the bridge mismatch count into err_count. If the DUT status
+    // flags are already set (tp/tf/evalid, mirrored into the config_db by
+    // uvmt_cv32e40p_tb), this block never kills the run.
     ////////////////////////////////////////////////////////////////////////////
+    longint unsigned iss_finish_grace_ns = 2_000_000; // +iss_finish_grace_ns=<ns>
+
     initial begin
+        bit        dut_tp, dut_tf, dut_evalid;
+        bit [31:0] dut_evalue;
+        bit        iss_done_seen;
+        longint    grace_left_ns;
+        void'($value$plusargs("iss_finish_grace_ns=%d", iss_finish_grace_ns));
         #1000000; // 1 ms: allow UVM env init and ref_init to complete
         forever begin
             #100000; // 100 us poll interval
             if (rvviRefIsFinished()) begin
-                `uvm_info(info_tag, "ISS finished - forcing $finish to unblock WFI", UVM_NONE)
-                $finish(0);
+                void'(uvm_config_db#(bit)::get(null, "*", "tp",     dut_tp));
+                void'(uvm_config_db#(bit)::get(null, "*", "tf",     dut_tf));
+                void'(uvm_config_db#(bit)::get(null, "*", "evalid", dut_evalid));
+                if (dut_tp || dut_tf || dut_evalid) begin
+                    // DUT-side end-of-test reached: the normal UVM shutdown
+                    // owns the verdict (PASS or honest FAIL). Park forever.
+                    `uvm_info(info_tag, "ISS finished and DUT status flags set - normal UVM shutdown owns the verdict", UVM_NONE)
+                    wait (0);
+                end
+                if (!iss_done_seen) begin
+                    iss_done_seen = 1;
+                    grace_left_ns = iss_finish_grace_ns;
+                    `uvm_info(info_tag, $sformatf("ISS finished, DUT not done - granting %0d ns grace before reaping", grace_left_ns), UVM_NONE)
+                end
+                else if (grace_left_ns <= 0) begin
+                    void'(uvm_config_db#(bit[31:0])::get(null, "*", "evalue", dut_evalue));
+                    `uvm_info(info_tag, $sformatf(
+                        "ISS finished but DUT never completed (tp=%0b tf=%0b evalid=%0b evalue=0x%08x) - forcing $finish to unblock WFI (counts as ABORTED)",
+                        dut_tp, dut_tf, dut_evalid, dut_evalue), UVM_NONE)
+                    $finish(0);
+                end
+                else begin
+                    grace_left_ns -= 100000;
+                end
             end
         end
     end
@@ -112,19 +156,20 @@ module uvmt_cv32e40p_gvsoc_wrap
         hart_id = 32'h0000_0000;
 
         // --- Volatile CSRs: hardware-updated, cannot be predicted per-retire ---
+        // Cycle counters only: time-derived, unpredictable per-retire.
+        // minstret/minstreth (and the instreth user-mode shadow 0xC82) are
+        // NOT volatile: retired-instruction count is architecturally
+        // predictable and the ISS models the RTL semantics (increment per
+        // retired instruction, ebreak excluded, same-row write suppression,
+        // mcountinhibit.IR gate) - the compare Imperas ran too. instret
+        // (0xC02) stays volatile for parity with the Imperas wrap.
         void'(rvviRefCsrSetVolatile(hart_id, `CSR_CYCLE_ADDR));
         void'(rvviRefCsrSetVolatile(hart_id, `CSR_CYCLEH_ADDR));
         void'(rvviRefCsrSetVolatile(hart_id, `CSR_INSTRET_ADDR));
-        void'(rvviRefCsrSetVolatile(hart_id, 32'hC82));              // instreth user-mode shadow
         void'(rvviRefCsrSetVolatile(hart_id, `CSR_MCYCLE_ADDR));
         void'(rvviRefCsrSetVolatile(hart_id, `CSR_MCYCLEH_ADDR));
-        void'(rvviRefCsrSetVolatile(hart_id, `CSR_MINSTRET_ADDR));
-        void'(rvviRefCsrSetVolatile(hart_id, `CSR_MINSTRETH_ADDR));
         // mip reflects async interrupt state; cannot be predicted.
         void'(rvviRefCsrSetVolatile(hart_id, `CSR_MIP_ADDR));
-        // Debug scratchpads are written in debug mode only.
-        void'(rvviRefCsrSetVolatile(hart_id, `CSR_DSCRATCH0_ADDR));
-        void'(rvviRefCsrSetVolatile(hart_id, `CSR_DSCRATCH1_ADDR));
         // HPM counters and events are not modeled by the ISS.
         for (int i = 0; i < 29; i++) begin
             void'(rvviRefCsrSetVolatile(hart_id, 32'hB03 + i));  // mhpmcounter3..31
@@ -149,9 +194,18 @@ module uvmt_cv32e40p_gvsoc_wrap
         void'(rvviRefCsrCompareEnable(hart_id, `CSR_MEPC_ADDR,          RVVI_TRUE));
         void'(rvviRefCsrCompareEnable(hart_id, `CSR_MCAUSE_ADDR,        RVVI_TRUE));
         void'(rvviRefCsrCompareEnable(hart_id, `CSR_MTVAL_ADDR,         RVVI_TRUE));
-        // Debug CSRs.
+        // Debug CSRs. The scratchpads are written from debug-ROM code only,
+        // which both sides execute in lockstep - Imperas compared them too.
         void'(rvviRefCsrCompareEnable(hart_id, `CSR_DCSR_ADDR,          RVVI_TRUE));
         void'(rvviRefCsrCompareEnable(hart_id, `CSR_DPC_ADDR,           RVVI_TRUE));
+        void'(rvviRefCsrCompareEnable(hart_id, `CSR_DSCRATCH0_ADDR,     RVVI_TRUE));
+        void'(rvviRefCsrCompareEnable(hart_id, `CSR_DSCRATCH1_ADDR,     RVVI_TRUE));
+        // Retired-instruction counters (see the volatile-set note above).
+        // The sync SV pushes their live value on every retire row, so the
+        // sticky mirror tracks the RTL count between explicit CSR writes.
+        void'(rvviRefCsrCompareEnable(hart_id, `CSR_MINSTRET_ADDR,      RVVI_TRUE));
+        void'(rvviRefCsrCompareEnable(hart_id, `CSR_MINSTRETH_ADDR,     RVVI_TRUE));
+        void'(rvviRefCsrCompareEnable(hart_id, 32'hC82,                 RVVI_TRUE));
         // Trigger and implementation-ID CSRs - ISS reset values match RTL.
         // mimpid is excluded: the RTL step-compare path does not check it.
         void'(rvviRefCsrCompareEnable(hart_id, `CSR_TDATA1_ADDR,    RVVI_TRUE));
@@ -170,16 +224,15 @@ module uvmt_cv32e40p_gvsoc_wrap
         void'(rvviRefCsrCompareEnable(hart_id, `CSR_LPSTART1_ADDR, RVVI_TRUE));
         void'(rvviRefCsrCompareEnable(hart_id, `CSR_LPEND1_ADDR,   RVVI_TRUE));
         void'(rvviRefCsrCompareEnable(hart_id, `CSR_LPCOUNT1_ADDR, RVVI_TRUE));
-        // FP status CSRs (FPU builds only). Flag accrual (fflags / fcsr[4:0])
-        // is not bit-exact between the RTL FPU and the ISS float model (e.g.
-        // underflow raised on exact denormal results, invalid accrued by
-        // trapped FP encodings), so only the explicitly-written rounding mode
-        // is compared: frm in full, fcsr masked to its frm field. fflags stays
-        // out of the compare set until the ISS flag semantics are aligned.
+        // FP status CSRs (FPU builds only). Full compare: frm, fflags and
+        // fcsr uncut. The historical fflags/fcsr[4:0] hold covered flag
+        // defects in the flexfloat layer; those are fixed and the model is
+        // Sail-conformant on the F suite (RISCOF 342/342), so flag accrual
+        // is compared exactly as the Imperas wrap did.
         if (FPU != 0) begin
-            void'(rvviRefCsrCompareEnable(hart_id, `CSR_FRM_ADDR,  RVVI_TRUE));
-            void'(rvviRefCsrCompareEnable(hart_id, `CSR_FCSR_ADDR, RVVI_TRUE));
-            void'(rvviRefCsrCompareMask(hart_id, `CSR_FCSR_ADDR, 64'hE0));
+            void'(rvviRefCsrCompareEnable(hart_id, `CSR_FRM_ADDR,    RVVI_TRUE));
+            void'(rvviRefCsrCompareEnable(hart_id, `CSR_FFLAGS_ADDR, RVVI_TRUE));
+            void'(rvviRefCsrCompareEnable(hart_id, `CSR_FCSR_ADDR,   RVVI_TRUE));
         end
 
         // --- Interrupt/debug nets ---
