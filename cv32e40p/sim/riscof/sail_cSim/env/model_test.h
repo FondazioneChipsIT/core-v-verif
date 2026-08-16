@@ -12,14 +12,21 @@
         .word 4;
 
 //RV_COMPLIANCE_HALT
+/* HTIF decodes the tohost word as (exit_code << 1) | 1, so writing 1 is the
+   "exit 0" the arch-test suite expects. The 123456789 magic used by the RTL
+   plugin is a DUT testbench convention; sail would read it as a failing exit
+   code and stop before writing the signature. */
 #define RVMODEL_HALT                                              \
-  li x1, 123456789;                                                                   \
+  li x1, 1;                                                                   \
   write_tohost:                                                               \
     sw x1, tohost, t5;                                                        \
     j write_tohost;
 
+/* No mtvec write here: arch_test.h runs RVTEST_TRAP_PROLOG, which installs
+   the trap handler and sets mtvec, immediately BEFORE RVMODEL_BOOT. Zeroing
+   mtvec at this point discards that handler, so every test that takes a trap
+   loops forever at address 0 instead of producing a signature. */
 #define RVMODEL_BOOT                        \
-  csrw    mtvec, x0;                        \
   la    t3, begin_signature;                \
   sw    t3, __TEST_SIG_BEGIN_ADDR, t4;      \
   la    t3, end_signature;                  \

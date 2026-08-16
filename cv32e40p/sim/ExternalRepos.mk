@@ -38,6 +38,8 @@ SVLIB_BRANCH     ?= master
 SVLIB_HASH       ?= c25509a7e54a880fe8f58f3daa2f891d6ecf6428
 
 #riscv-arch-test suite with riscof
+# Pinned to 3.9.1: 4.0.0 dropped riscv-test-suite/rv32i_m/, the directory the
+# RV32 test lists are generated from.
 RISCOF_ARCH_TEST_SUITE_REPO    ?= https://github.com/riscv/riscv-arch-test.git
 RISCOF_ARCH_TEST_SUITE_BRANCH  ?= main
-RISCOF_ARCH_TEST_SUITE_TAG     ?= latest
+RISCOF_ARCH_TEST_SUITE_TAG     ?= 3.9.1

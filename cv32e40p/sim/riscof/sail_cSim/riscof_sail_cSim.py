@@ -40,7 +40,21 @@ class sail_cSim(pluginTemplate):
         self.pluginpath = os.path.abspath(config['pluginpath'])
         path = config['PATH'] if 'PATH' in config else ""
 
-        self.sail_exe = { '32' : os.path.join(path,"riscv_sim_RV32"), '64' : os.path.join(path,"riscv_sim_RV64")}
+        # sail-riscv ships a single emulator since 0.9; XLEN and the enabled
+        # extensions come from the configuration file, not from the binary
+        # name or from command line flags. sail_config is therefore the only
+        # channel left for them and is mandatory: without it the reference
+        # model would silently run on its own defaults.
+        self.sail_exe = os.path.join(path, "sail_riscv_sim")
+        if 'sail_config' not in config:
+            logger.error("sail_config missing from the sail_cSim configuration. "
+                         "Since sail-riscv 0.9 the emulator takes XLEN and the "
+                         "enabled extensions from a JSON configuration; without "
+                         "one the reference model runs on defaults that do not "
+                         "match the DUT. Generate it with "
+                         "sail_cSim/gen_sail_config.py.")
+            raise SystemExit(1)
+        self.sail_config = os.path.abspath(config['sail_config'])
         self.isa_spec = os.path.abspath(config['ispec']) if 'ispec' in config else ''
         self.platform_spec = os.path.abspath(config['pspec']) if 'ispec' in config else ''
         self.make = config['make'] if 'make' in config else 'make'
@@ -91,10 +105,13 @@ class sail_cSim(pluginTemplate):
         if "Zifencei" in ispec["ISA"]:
             self.isa += '_zifencei'
 
-        if "hw_data_misaligned_support" in ispec and ispec["hw_data_misaligned_support"]== True:
-            self.enable_data_misaligned = '--enable-misaligned'
-        else:
-            self.enable_data_misaligned = ''
+        # hw_data_misaligned_support no longer maps to a flag: misaligned
+        # access behaviour is part of the configuration file (see
+        # memory.misaligned in gen_sail_config.py). Flagged here so a
+        # mismatch against the ISA yaml is visible in the log.
+        if ispec.get("hw_data_misaligned_support"):
+            logger.info("hw_data_misaligned_support is set in the ISA yaml; "
+                        "check memory.misaligned in " + self.sail_config)
 
         objdump = "riscv{0}-unknown-elf-objdump".format(self.xlen)
 
@@ -106,8 +123,8 @@ class sail_cSim(pluginTemplate):
             if shutil.which(compiler) is None:
                 logger.error(compiler+": executable not found. Please check environment setup.")
                 raise SystemExit(1)
-            if shutil.which(self.sail_exe[self.xlen]) is None:
-                logger.error(self.sail_exe[self.xlen]+ ": executable not found. Please check environment setup.")
+            if shutil.which(self.sail_exe) is None:
+                logger.error(self.sail_exe + ": executable not found. Please check environment setup.")
                 raise SystemExit(1)
             if shutil.which(self.make) is None:
                 logger.error(self.make+": executable not found. Please check environment setup.")
@@ -152,15 +169,14 @@ class sail_cSim(pluginTemplate):
 
             execute += self.objdump_cmd.format(elf, self.xlen, 'ref.disass')
 
-            if 'c' not in  self.isa:
-                cmd = self.sail_exe[self.xlen]+' -C'
-            else:
-                cmd = self.sail_exe[self.xlen]
+            cmd = self.sail_exe
+            if self.sail_config:
+                cmd += ' --config ' + self.sail_config
 
             if self.docker:
-                execute += cmd + ' {0} --test-signature={1} {2} > {3}.log 2>&1;'.format(self.enable_data_misaligned, sig_file, elf, test_name)
+                execute += cmd + ' --test-signature={0} {1} > {2}.log 2>&1;'.format(sig_file, elf, test_name)
             else:
-                execute += cmd + ' {0} --test-signature={1} {2} > {3}.log;'.format(self.enable_data_misaligned, sig_file, elf, test_name)
+                execute += cmd + ' --test-signature={0} {1} > {2}.log;'.format(sig_file, elf, test_name)
 
             cov_str = ' '
             for label in testentry['coverage_labels']:
