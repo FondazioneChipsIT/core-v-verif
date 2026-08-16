@@ -301,7 +301,19 @@ class cv32e40p_asm_program_gen extends corev_asm_program_gen;
       interrupt_handler_instr.push_back($sformatf("add x%0d, x%0d, zero", cfg.tp, cfg.sp));
       interrupt_handler_instr.push_back($sformatf("csrrw x%0d, mscratch, x%0d", cfg.sp, cfg.sp));
 
-      // Re-enable interrupts        
+      // Stack-floor guard: re-open the nesting window (MIE) only while the
+      // kernel stack has room for at least one more nested excursion.
+      // Without this bound a continuous IRQ train re-enters the prologue
+      // faster than handlers complete and the kernel stack marches over the
+      // handler code itself, self-destroying the program
+      // (finding_nested_stack_overflow_20260811: deterministic illegal storm
+      // @459701 ns, SEED=1). tp holds the kernel SP here (banked just
+      // above); 512B margin covers one full nested frame (4-word CSR frame +
+      // GPR/FPR regfile push on FPU configs).
+      interrupt_handler_instr.push_back($sformatf("la x%0d, %0skernel_stack_start", cfg.gpr[0], hart_prefix(hart)));
+      interrupt_handler_instr.push_back($sformatf("addi x%0d, x%0d, 512", cfg.gpr[0], cfg.gpr[0]));
+      interrupt_handler_instr.push_back($sformatf("bltu x%0d, x%0d, 7f", cfg.tp, cfg.gpr[0]));
+      // Re-enable interrupts
       case (status)
         MSTATUS: begin
           interrupt_handler_instr.push_back($sformatf("csrsi 0x%0x, 0x%0x", status, 8));
@@ -314,6 +326,7 @@ class cv32e40p_asm_program_gen extends corev_asm_program_gen;
         end
         default: `uvm_fatal(`gfn, $sformatf("Unsupported status %0s", status))
       endcase
+      interrupt_handler_instr.push_back("7:");
     end // enable_nested_interrupt
 
     // Read back interrupt related privileged CSR
