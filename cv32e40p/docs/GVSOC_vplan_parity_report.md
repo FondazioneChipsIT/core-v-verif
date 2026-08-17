@@ -9,9 +9,11 @@ pulp `66b648a` / gvsoc `3401620` / gvsoc_rvvi `f2a6adc` / cvv `2b9d33a1d` ·
 ## Verdetto (BLUF)
 
 La co-simulazione GVSOC copre **tutti i punti di verifica che l'ambiente copriva con
-ImperasDV**, con **2 sole eccezioni azionabili** (test `all_csr_por` e
-`load_store_rs1_zero`, assenti dalle lane quick_val — programmi presenti nel repo,
-aggiungibili subito). A livello di vplan-item, **661/785 item** dei piani di simulazione
+ImperasDV**, con **2 sole eccezioni azionabili**, entrambe **chiuse il 2026-08-12**: lane
+`load_store_rs1_zero` aggiunta e PASS; lane `all_csr_por` aggiunta, divergenza
+root-caused (banca PMP dichiarata dal modello generico, assente nell'RTL) e
+**fixata spec-driven** — la sweep CSR completa ora PASSA. **Matrice 427/427,
+tutte expected-pass.** A livello di vplan-item, **661/785 item** dei piani di simulazione
 v2 sono coperti dal nostro step-and-compare (648 pieni + 13 con chiusura bin rimandata
 all'asse UCDB); i restanti 124 sono item che **nemmeno ImperasDV copriva**
 (assertion RTL, item mai implementati upstream, N/A, TBD upstream, cluster).
@@ -83,12 +85,21 @@ I file originali non sono toccati.
 
 ## Azioni
 
-1. **Aggiungere 2 lane** a quick_val: `load_store_rs1_zero` (run, config pulp) e
-   `all_csr_por` (run, config pulp; caratterizzare l'eventuale miscompare CSR al primo run).
+1. ~~Aggiungere 2 lane a quick_val~~ **FATTO 2026-08-12**: `load_store_rs1_zero`
+   (run, pulp) **PASS** al primo run (28 s). `all_csr_por` (pulp): la divergenza al
+   retire #1.158.407 è stata **root-caused e fixata** — il DUT trappa illegal su
+   `pmpcfg0` (CV32E40P non ha PMP), mentre il modello generico dichiara la banca
+   PMP anche con la variante PmpEmpty (`CONFIG_GVSOC_ISS_PMP` è un nome di tipo,
+   sempre definito). Fix spec-driven nella personality (`Cv32e40pCsr`: undeclare
+   `pmpcfg0..15`/`pmpaddr0..63`, file cv32e40p-only, zero impatto cross-target).
+   Validazione: sweep CSR completa **PASS** (2212 s, zero mismatch) + non-regressione
+   `cv32e40p_csr_access_test`/`modeled_csr_por`/`readonly` PASS + smoke hello-world.
+   Evidenza: `/data2/marco.paci/validation-evidence/{parity_lanes,pmp_fix_val}_20260812/`.
+   **Matrice test-level: 427/427 punti, tutti expected-pass.**
 2. **Asse UCDB (roadmap F1)**: i 13 item COVERED-CG chiudono i bin con la regressione
    COV=YES — già pianificata, indipendente dalla parity ISS.
-3. Correggere il claim stale nell'header di `quick_val.sh` (cita ancora
-   `engine_at_armed_trigger`, rimosso col consolidamento del 2026-08-11).
+3. ~~Correggere il claim stale nell'header di `quick_val.sh`~~ **FATTO 2026-08-12**
+   (fix (5) ora descrive il meccanismo model-side post-consolidamento).
 
 ## Audit trail
 
