@@ -33,6 +33,23 @@ class uvma_interrupt_drv_c extends uvm_driver#(
 
    semaphore               assert_until_ack_sem[32];
 
+   // STIMULUS bound (not a DUT/protocol property): maximum number of driver
+   // clock edges a single assert-until-ack hold may wait for ITS OWN ack
+   // before the line is force-deasserted and the ownership semaphore is
+   // released. Without it the driver has a ratchet: any thread can RAISE a
+   // line (assert_irq falls through when the line is owned) but only the
+   // owning until-ack thread can LOWER it (deassert_irq is a no-op on an
+   // owned line, irq_ack_clear skips it), so a line whose id keeps losing
+   // the core's priority arbitration stays high forever. One stuck line is
+   // enough to leave an interrupt pending&enabled at every mret boundary:
+   // the handler re-takes indefinitely and the application thread starves
+   // (measured main duty 0.00-2.0% on the campaign lanes that time out with
+   // sim time still advancing linearly - starvation, not a livelock).
+   // 2000 edges is ~7.5x the measured take cadence (223-265 clk) and ~5x
+   // the longest handler (250-410 clk), so a line that is genuinely next in
+   // line for service is never cut short.
+   int unsigned            until_ack_max_hold_clk = 2000;
+
    // TLM
    uvm_analysis_port#(uvma_interrupt_seq_item_c)  ap;
 
@@ -175,19 +192,38 @@ task uvma_interrupt_drv_c::drv_req(uvma_interrupt_seq_item_c req);
 endtask : drv_req
 
 task uvma_interrupt_drv_c::assert_irq_until_ack(int unsigned index, int unsigned repeat_count, int unsigned skew);
+   // Driver-clock edges waited on the current ack, and the flag that aborts
+   // the remaining repeat_count iterations once the hold bound expires.
+   // Class-method locals are automatic: one private copy per forked line.
+   int unsigned hold_edges;
+   bit          hold_expired;
+
    // If a thread is already running on this irq, then exit
    if (!assert_until_ack_sem[index].try_get(1))
       return;
 
    repeat (skew) @(cntxt.vif.drv_cb);
 
-   for (int loop = 0; loop < repeat_count; loop++) begin
+   hold_expired = 1'b0;
+
+   for (int loop = 0; loop < repeat_count && !hold_expired; loop++) begin
       repeat (skew) @(cntxt.vif.drv_cb);cntxt.vif.drv_cb.irq_drv[index] <= 1'b1;
 
+      hold_edges = 0;
       while (1) begin
          @(cntxt.vif.mon_cb);
          if ((cntxt.vif.mon_cb.irq_ack && cntxt.vif.mon_cb.irq_id == index))
             break;
+         // STIMULUS bound: give up on this ack instead of holding the line
+         // (and its ownership semaphore) forever. See until_ack_max_hold_clk.
+         hold_edges++;
+         if (hold_edges >= until_ack_max_hold_clk) begin
+            hold_expired = 1'b1;
+            `uvm_info("IRQDRV",
+                      $sformatf("assert_irq_until_ack: irq %0d not acked within %0d clk - forcing deassert (stimulus hold bound, anti-starvation)",
+                                index, until_ack_max_hold_clk), UVM_LOW);
+            break;
+         end
       end
    end
 
