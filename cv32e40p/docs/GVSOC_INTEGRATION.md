@@ -21,34 +21,29 @@ defaults, and the GVSOC-specific code is selected with `USE_GVSOC`.
 
 ## Status (verified) — read the framing, not just the number
 
+Status as of 2026-08-18. The FAST2/`no_pulp` bring-up numbers this section used
+to carry live in the git history; the PULP regression below is the real
+OVPSIM-replacement scope, as classified in the report §3.6-3.7.
+
 | What | Result |
 |------|--------|
-| GVSOC FAST2 `no_pulp` DPI co-sim (last full run 2026-05-20) | **644/651 PASS (98.92%)**, **99.69% ISS-attributable** |
-| Suite scope | FAST2 = **25 tests**; full `no_pulp` (Imperas) = **43 tests** |
-| Cross-target build (all other GVSOC cores) | **GREEN** (287 `.so`) |
-| Frozen revision point-validation (2026-06-12) | 14-test targeted + 4-config smoke, all PASS |
+| Full PULP DPI co-sim regression, 7 TB configs (`pulp`, `pulp_fpu`, `pulp_fpu_zfinx`, each ± 1/2-cycle FPU latency), 413 lanes (2026-08-18) | **408 PASS, 3 known-fail, 2 explained artifacts — zero unexplained failures** |
+| RISCOF vs the Sail golden model (rv32imc+F arch-tests, 434 tests) | **431/434 PASS, F extension 342/342**; the 3 residuals are a reference-configuration class (the reference's mtvec reset enters the signature), not ISS defects |
+| Code coverage over the passing set, official v2 waivers only (the sign-off's own exclusion .do files, unmodified — apples-to-apples with the Imperas-era flow) | **bcs 99.16%** (statements 99.77 / branches 99.08 / conditions 98.63), assertions **100%** |
+| Same, plus a full formal unreachability pass (Questa CoverCheck, 694 items proven unreachable — the "need to prove" step the official sign-off left open) | **bcs 99.36%** (statements 99.82 / branches 99.63 / conditions 98.63), FSM states **100%** — every residual item enumerated and risk-assessed |
 
-**Important honesty note.** The 644/651 is measured on **FAST2**, which
-deliberately excludes **18 debug/interrupt/ebreak/illegal-instr tests** that the
-full `no_pulp` suite Imperas runs keeps active (excluded *for GVSOC* —
-DPI co-sim trap/timing divergences). And "Imperas = 100%" is
-golden-by-definition (Imperas *is* the reference model), not a measured
-baseline — the official Imperas counts are produced on an external Metrics
-cloud, not in this repo.
-
-So the gap to full **`no_pulp`-suite** parity is three-part:
-
-1. **1 genuine ISS divergence** — `generic_exception_test` (`mepc`).
-2. **5 DPI-bridge deadlocks** — the GVSOC bridge has no reconverge-on-mismatch
-   (Imperas does); a testbench-infrastructure gap, not an ISS error.
-3. **18 debug/interrupt tests** excluded from FAST2 — `no_pulp` full-suite parity
-   requires bringing these back (fix or formally document).
-
-And `no_pulp` itself is only a **bring-up scaffold**: the OpenHW v1.8.3 sign-off
-runs no non-PULP config. The real OVPSIM replacement is the PULP simulation
-regression — XPULP + FPU + interrupt/debug on `{CFG_P, CFG_P_F0, CFG_P_Z0}` — as
-classified in the report §3.6-3.7 and sequenced in the roadmap. None of this is a
-regression of the existing Imperas flow, which is unchanged.
+**Honesty framing of the 5 non-PASS lanes.** The 3 known-fails are documented,
+root-caused divergences carried in the xfail list, not silent waivers:
+`debug_test` (a DUT-side RVFI tracer artifact on haltreq entries — see the
+Debug entry section of `ARCHITECTURE.md`) and `interrupt_nested` on two configs
+(the riscv-dv-emitted handler re-enables MIE with no depth bound, so the
+generated program self-destructs by unbounded re-nesting — a generator
+trajectory, not a model or RTL defect). The 2 explained artifacts are
+observation-layer, both with zero ISS/RTL mismatches: a TB covergroup
+illegal-bin that attributes trap-handler instructions to a hardware-loop body,
+and a one-row `mstatus.FS` visibility skew on an FP load outside the
+latency-aware compare window (both documented with proposed fixes). None of
+this is a regression of the existing Imperas flow, which is unchanged.
 
 ## Where the detail lives
 
