@@ -187,6 +187,14 @@ task uvmt_cv32e40p_firmware_test_c::bootset_debug();
     @(negedge env_cntxt.clknrst_cntxt.vif.reset_n);
 
     // Delay debug_req_i by up to 35 cycles.Should hit BOOT_SET
+    // The range is deliberately UNCORRELATED with the boot latency (which
+    // +fixed_instr_gnt_stall and the FPU configs stretch), so dpc at the debug
+    // entry is not a fixed value: it slides with the number of prologue
+    // instructions already retired. The self-check in the debug ROM
+    // (tests/programs/custom/debug_test_boot_set/debugger.S) therefore accepts
+    // a bounded window inside the boot sequence instead of one exact address -
+    // do not "fix" a boot_set failure by narrowing this range without reading
+    // that comment first.
     if (!test_randvars.randomize() with { random_int inside {[1:35]}; }) begin
         `uvm_fatal("TEST", "Cannot randomize test_randvars for debug_req_delay!")
     end
