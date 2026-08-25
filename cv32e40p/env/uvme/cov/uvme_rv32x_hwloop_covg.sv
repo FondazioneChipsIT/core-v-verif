@@ -834,7 +834,12 @@ class uvme_rv32x_hwloop_covg # (
           has_trap_due2_dbg_match_trig = 1;
           wait (!cv32e40p_rvvi_vif.trap); // bypass and do nothing
         end
-        else if ((cv32e40p_rvvi_vif.csr_dcsr_step || !pending_irq_ack) && !is_dbg_mode && !is_irq) begin // set excep flag only if no pending irq is serving, not in irq and not in dbg mode
+        // A pending_irq_ack with NO irq line currently qualified (irq_onehot_priority==0)
+        // is stale - the line was deasserted before the take (e.g. a bounded stimulus
+        // gives up on an unacked line) - so no irq entry can replace this trap: flag the
+        // synchronous exception normally, or its handler instructions get attributed to
+        // the hwloop body and fire the illegal bins of cp_insn_list_in_hwloop.
+        else if ((cv32e40p_rvvi_vif.csr_dcsr_step || !pending_irq_ack || cv32e40p_rvvi_vif.irq_onehot_priority == 0) && !is_dbg_mode && !is_irq) begin // set excep flag only if no pending irq is serving, not in irq and not in dbg mode
           is_trap = 1;
           case (cv32e40p_rvvi_vif.insn)
             TB_INSTR_EBREAK, INSTR_CBREAK : if (cv32e40p_rvvi_vif.csr_dcsr_ebreakm) begin 
@@ -982,6 +987,9 @@ class uvme_rv32x_hwloop_covg # (
           end // EXCEPTION_ENTRY
           else if (pc_is_mtvec_addr() && is_mcause_irq()) begin : IRQ_ENTRY
             if (hwloop_stat_main.execute_instr_in_hwloop[0] | hwloop_stat_main.execute_instr_in_hwloop[1]) begin
+              // Ground-truth correction (mcause[31]) for the speculative exception flags
+              // set by SET_EXCEPTION_FLAG: when the entry turns out to be an irq, the
+              // exception flags are cleared and the irq entry takes over.
               if (is_trap && enter_hwloop_sub_cnt == 1) begin : TRAP_DUETO_IRQ_ENTRY // exception trap and irq are b2b cycles
                 if (prev_is_lpend_main[0] && prev_is_trap) hwloop_stat_main.track_lp_cnt[0]++;
                 if (prev_is_lpend_main[1] && prev_is_trap) hwloop_stat_main.track_lp_cnt[1]++;
