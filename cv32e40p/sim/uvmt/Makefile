@@ -126,13 +126,11 @@ run: generate_gvsoc_dpi_config
 # The core configuration is baked into the iss_v2 target name.
 GVSOC_V2_TARGET = cv32e40p-v2-standalone$(if $(filter True,$(GVSOC_ZFINX)),-zfinx,$(if $(filter True,$(GVSOC_FPU)),-fpu,$(if $(filter True,$(GVSOC_COREV_PULP)),,-nopulp)))
 generate_gvsoc_dpi_config:
+	$(MAKE) -C $(GVSOC_RVVI_HOME) $(notdir $(GVSOC_RVVI_MODEL)) \
+		DPI_INCLUDE="$(DPI_INCLUDE)"
 	@echo "--- Generating GVSOC config for DPI (CFG=$(CFG), iss_v2) ---"
 	$(MAKE) -C $(GVSOC_RVVI_HOME) config-v2 \
 		BINARY=$(GVSOC_ELF) \
 		V2_TARGET=$(GVSOC_V2_TARGET)
-ifeq ($(GVSOC_ZFINX),True)
-	@echo "--- Building ZFINX iss_v2 GVSOC bridge ---"
-	$(MAKE) -C $(GVSOC_RVVI_HOME) libgvsoc_rvvi_v2_zfinx.so
-endif
 
 endif
