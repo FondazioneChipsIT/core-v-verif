@@ -18,6 +18,9 @@
 module uvmt_cv32e40p_debug_assert  
   import uvm_pkg::*;
   import cv32e40p_pkg::*;
+  #(
+    parameter int COREV_CLUSTER = 0
+  )
   (
       uvmt_cv32e40p_debug_cov_assert_if cov_assert_if
   );
@@ -252,9 +255,12 @@ module uvmt_cv32e40p_debug_assert
         cov_assert_if.dcsr_q[8:6] == cv32e40p_pkg::DBG_CAUSE_HALTREQ;
     endproperty
 
-    a_sleep_debug_req : assert property(p_sleep_debug_req)
-        else
-            `uvm_error(info_tag, $sformatf("Did not exit sleep(== %d) after debug_req_i. Debug_mode = %d cause = %d", cov_assert_if.core_sleep_o, cov_assert_if.debug_mode_q, cov_assert_if.dcsr_q[8:6]));
+    // With COREV_CLUSTER a WFI never sleeps, so a later debug request is not a wake-up.
+    if (!COREV_CLUSTER) begin : gen_sleep_debug_req
+      a_sleep_debug_req : assert property(p_sleep_debug_req)
+          else
+              `uvm_error(info_tag, $sformatf("Did not exit sleep(== %d) after debug_req_i. Debug_mode = %d cause = %d", cov_assert_if.core_sleep_o, cov_assert_if.debug_mode_q, cov_assert_if.dcsr_q[8:6]));
+    end
 
     // Accessing debug regs in m-mode is illegal
     property p_debug_regs_mmode;
