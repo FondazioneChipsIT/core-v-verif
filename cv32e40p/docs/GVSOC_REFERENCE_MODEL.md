@@ -74,3 +74,16 @@ holds those of OVPsim. It names the target of the bridge whose model has the RTL
 
 The `_1cyclat` and `_2cyclat` configurations use the target of their base configuration. Nothing checks that the
 target matches the `compile_flags` of the same file: they are kept aligned by hand, as for `ovpsim`.
+
+## Running
+
+`ISS` selects the reference model of `USE_ISS=YES` (`mk/uvmt/uvmt.mk`): `IMPERAS`, the default, or `GVSOC`, which
+needs `SIMULATOR=vsim` and sets `USE_ISS=YES` unless it is given. With `GVSOC`, `mk/uvmt/vsim.mk`:
+
+- defines `USE_GVSOC`, compiles `gvsoc.flist` and loads the library of the bridge, `GVSOC_RVVI_MODEL` (`-sv_lib`);
+- before each simulation runs `gen_gvsoc_config`: `gvrun prepare`, with the `gvsoc` tag of the configuration, the ELF
+  of the test, the `+mtvec_addr` plusarg of the test if any, and `stop_on_exit=false` so that the model runs past the
+  end of the test like the RTL, writes the platform configuration in `<run directory>/gvsoc`. `GVSOC_CONFIG` points
+  the bridge to it.
+
+`mk/README.md` lists the variables of the flow.
