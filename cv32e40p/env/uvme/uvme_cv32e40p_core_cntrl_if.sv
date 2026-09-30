@@ -13,6 +13,7 @@ interface uvme_cv32e40p_core_cntrl_if
     logic        fetch_en;
 
     logic        scan_cg_en;
+    logic        pulp_clock_en;
     logic [31:0] boot_addr;
     logic [31:0] mtvec_addr;
     logic [31:0] dm_halt_addr;

@@ -55,6 +55,7 @@ task uvma_cv32e40p_core_cntrl_drv_c::drive_bootstrap();
    e40p_cntxt.core_cntrl_vif.mhartid           = cfg.mhartid;
    e40p_cntxt.core_cntrl_vif.fetch_en          = 1'b0;
    e40p_cntxt.core_cntrl_vif.scan_cg_en        = 1'b0;
+   e40p_cntxt.core_cntrl_vif.pulp_clock_en     = 1'b1;
 
 endtask : drive_bootstrap
 
