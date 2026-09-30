@@ -54,3 +54,23 @@ Each decision point carries the number of the next instruction to leave ID, coun
 applies it before the instruction that RVFI retires with that number (`order`). This works only if RVFI retires the
 instructions in the order they leave ID: at each instruction that RVFI retires the monitor checks its `order` and
 `pc`, and stops the test with a FATAL if it is not the oldest instruction that left ID and has not retired yet.
+
+## Build configurations
+
+The `gvsoc` tag of a configuration in `cv32e40p/tests/cfg/` holds the options of `gvrun` for the model, as `ovpsim`
+holds those of OVPsim. It names the target of the bridge whose model has the RTL parameters of the configuration
+(`FPU`, `ZFINX`, `COREV_PULP`, `COREV_CLUSTER`, `NUM_MHPMCOUNTERS`):
+
+| Configurations | Target |
+|---|---|
+| default, no_pulp | `cv32e40p_cosim` |
+| num_mhpmcounter_29 | `cv32e40p_cosim_mhpm29` |
+| pulp | `cv32e40p_cosim_pulp` |
+| pulp_fpu | `cv32e40p_cosim_pulp_fpu` |
+| pulp_fpu_zfinx | `cv32e40p_cosim_pulp_fpu_zfinx` |
+| pulp_cluster | `cv32e40p_cosim_pulp_cluster` |
+| pulp_cluster_fpu | `cv32e40p_cosim_pulp_cluster_fpu` |
+| pulp_cluster_fpu_zfinx | `cv32e40p_cosim_pulp_cluster_fpu_zfinx` |
+
+The `_1cyclat` and `_2cyclat` configurations use the target of their base configuration. Nothing checks that the
+target matches the `compile_flags` of the same file: they are kept aligned by hand, as for `ovpsim`.

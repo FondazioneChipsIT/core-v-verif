@@ -346,6 +346,7 @@ The contents of the YAML file support the following tags:
 | description   | Yes      | Brief description of the intent of the build configuration |
 | compile_flags | No       | Compile flags passed to the simulator compile-step    |
 | ovpsim        | No       | Flags for the IC file for the OVPSim ISS   |
+| gvsoc         | No       | Options of `gvrun` for the GVSOC reference model |
 
 <br>
 The following is an example build configuration:<br>
