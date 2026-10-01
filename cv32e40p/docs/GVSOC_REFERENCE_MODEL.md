@@ -92,3 +92,5 @@ needs `SIMULATOR=vsim` and sets `USE_ISS=YES` unless it is given. With `GVSOC`, 
 ## ISA coverage
 
 With `COV=YES` the ISA coverage comes from `uvma_isacov`, which reads the instructions from the RVFI agent.
+
+`fflags`, `frm` and `fcsr` are supported with RV32F or Zfinx, so the RVFI agent and `uvma_isacov` see their accesses.
