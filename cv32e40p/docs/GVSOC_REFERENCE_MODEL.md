@@ -101,3 +101,10 @@ covered for every operand with Zfinx, and only on the GPR side with F.
 
 `uvme_rv32x_isa_covg` does the same for Xpulp (XPULPV2, and `cv.elw` with `COREV_CLUSTER`). The hardware loops are
 covered by `uvme_rv32x_hwloop_covg`.
+
+## Tests
+
+Self-checking programs in `cv32e40p/tests/programs/custom/`, not in the regression lists:
+
+- `pulp_cluster_elw_test`: `cv.elw` on plain memory, where it reads like `lw`, on the pulp_cluster configurations. In
+  co-simulation it needs an RTL whose RVFI follows a `cv.elw` through EX and WB.
