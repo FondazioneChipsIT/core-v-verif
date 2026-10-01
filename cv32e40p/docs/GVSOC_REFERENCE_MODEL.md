@@ -98,3 +98,6 @@ With `COV=YES` the ISA coverage comes from `uvma_isacov`, which reads the instru
 `uvme_rv32f_isa_covg` adds the RV32F, Zcf and Zfinx instructions: it decodes them from the `uvma_isacov` transactions
 and samples one covergroup per instruction. RVFI reports the integer registers only, so the operand values are
 covered for every operand with Zfinx, and only on the GPR side with F.
+
+`uvme_rv32x_isa_covg` does the same for Xpulp (XPULPV2, and `cv.elw` with `COREV_CLUSTER`). The hardware loops are
+covered by `uvme_rv32x_hwloop_covg`.
