@@ -88,3 +88,7 @@ needs `SIMULATOR=vsim` and sets `USE_ISS=YES` unless it is given. With `GVSOC`, 
   the bridge to it.
 
 `mk/README.md` lists the variables of the flow.
+
+## ISA coverage
+
+With `COV=YES` the ISA coverage comes from `uvma_isacov`, which reads the instructions from the RVFI agent.

@@ -92,6 +92,7 @@ Limitations:
 - `cycle(h)`, `mcycle(h)`, `mip`, `mhpmcounter(h)3..31` and `hpmcounter(h)3..31` are volatile, so
   an instruction that reads one gets the value the RTL read. Loads from the virtual peripherals at
   `0x15001000` are volatile too.
+- With `COV=YES` the ISA coverage comes from `uvma_isacov`.
 
 [cv32e40p/docs/GVSOC_REFERENCE_MODEL.md](../cv32e40p/docs/GVSOC_REFERENCE_MODEL.md) describes how
 the testbench drives the model.
