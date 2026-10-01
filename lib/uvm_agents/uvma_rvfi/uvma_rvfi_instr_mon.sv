@@ -126,8 +126,12 @@ endtask : run_phase
 
 task uvma_rvfi_instr_mon_c::monitor_rvfi_instr();
    while(1) begin
+      bit valid;
+
       @(cntxt.instr_vif[nret_id].mon_cb);
-      if (cntxt.instr_vif[nret_id].mon_cb.rvfi_valid) begin
+      // Test a copy: read in the if, Questa 2025.3 can miss a row after a cycle without one.
+      valid = cntxt.instr_vif[nret_id].mon_cb.rvfi_valid;
+      if (valid) begin
          uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) mon_trn;
 
          mon_trn = uvma_rvfi_instr_seq_item_c#(ILEN,XLEN)::type_id::create("rvfi_instr_mon_trn");
