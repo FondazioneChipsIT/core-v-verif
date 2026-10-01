@@ -94,3 +94,7 @@ needs `SIMULATOR=vsim` and sets `USE_ISS=YES` unless it is given. With `GVSOC`, 
 With `COV=YES` the ISA coverage comes from `uvma_isacov`, which reads the instructions from the RVFI agent.
 
 `fflags`, `frm` and `fcsr` are supported with RV32F or Zfinx, so the RVFI agent and `uvma_isacov` see their accesses.
+
+`uvme_rv32f_isa_covg` adds the RV32F, Zcf and Zfinx instructions: it decodes them from the `uvma_isacov` transactions
+and samples one covergroup per instruction. RVFI reports the integer registers only, so the operand values are
+covered for every operand with Zfinx, and only on the GPR side with F.
