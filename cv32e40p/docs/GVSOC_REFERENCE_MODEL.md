@@ -73,8 +73,11 @@ holds those of OVPsim. It names the target of the bridge whose model has the RTL
 | pulp_cluster_fpu | `cv32e40p_cosim_pulp_cluster_fpu` |
 | pulp_cluster_fpu_zfinx | `cv32e40p_cosim_pulp_cluster_fpu_zfinx` |
 
-The `_1cyclat` and `_2cyclat` configurations use the target of their base configuration. Nothing checks that the
-target matches the `compile_flags` of the same file: they are kept aligned by hand, as for `ovpsim`.
+The `_1cyclat` and `_2cyclat` configurations give the target their FPU latencies, the `FPU_ADDMUL_LAT` and
+`FPU_OTHERS_LAT` of their `compile_flags`, as target parameters: for example
+`cv32e40p_cosim_pulp_fpu:fpu_addmul_lat=1:fpu_others_lat=1`. The parameters are part of the target name, so
+`GVSOC_INSTALL` must be built with these targets. Nothing checks that the target matches the `compile_flags` of the
+same file: they are kept aligned by hand, as for `ovpsim`.
 
 ## Running
 
