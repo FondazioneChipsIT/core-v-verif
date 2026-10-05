@@ -25,7 +25,8 @@ comparisons. For each instruction it takes from RVFI:
 
 The wrapper also reports to the bridge each write accepted on the data bus (`rvviDutBusWrite`), and the bridge
 compares them in order with the stores of the model. At the end of the test the testbench counts the mismatches as
-errors, as with ImperasDV.
+errors, as with ImperasDV, and the errors of the bridge outside the comparisons (`RVVI_METRIC_ERRORS`), such as a
+CSR write that the model refused.
 
 `ref_init` loads the ELF of the test (`+elf_file`) in the model, then:
 
