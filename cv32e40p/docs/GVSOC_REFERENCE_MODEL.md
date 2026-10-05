@@ -108,3 +108,5 @@ Self-checking programs in `cv32e40p/tests/programs/custom/`, not in the regressi
 
 - `pulp_cluster_elw_test`: `cv.elw` on plain memory, where it reads like `lw`, on the pulp_cluster configurations. In
   co-simulation it needs an RTL whose RVFI follows a `cv.elw` through EX and WB.
+- `fp_dyn_rounding_test`: `rm = dyn` gives the result and the flags of the static mode in `frm`, exact ties
+  included, with F or Zfinx.
