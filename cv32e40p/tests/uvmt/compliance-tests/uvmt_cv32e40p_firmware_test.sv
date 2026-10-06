@@ -186,8 +186,8 @@ task uvmt_cv32e40p_firmware_test_c::bootset_debug();
     `uvm_info("TEST", "Applying single cycle debug_req after reset", UVM_NONE);
     @(negedge env_cntxt.clknrst_cntxt.vif.reset_n);
 
-    // Delay debug_req_i by up to 35 cycles.Should hit BOOT_SET
-    if (!test_randvars.randomize() with { random_int inside {[1:35]}; }) begin
+    // Up to 5 cycles, to enter debug before the first instruction also when fetch_en comes at once.
+    if (!test_randvars.randomize() with { random_int inside {[1:5]}; }) begin
         `uvm_fatal("TEST", "Cannot randomize test_randvars for debug_req_delay!")
     end
     repeat(test_randvars.random_int) @(posedge env_cntxt.clknrst_cntxt.vif.clk);
