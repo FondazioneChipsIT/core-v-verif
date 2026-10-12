@@ -94,3 +94,6 @@ cv32e40p/sim/uvmt/regress_results/
 
 # python env on mamuthones account
 /gvsoc_env_3_12
+
+# uvmt makefile for questasim (keeping default paths)
+/mk/uvmt/vsim.mk
