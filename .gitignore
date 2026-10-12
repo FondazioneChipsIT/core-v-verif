@@ -87,3 +87,10 @@ bin/all_nrs/
 
 # Regression artifacts (large output, never committed)
 cv32e40p/sim/uvmt/regress_results/
+
+# quick_val.sh results
+/cv32e40p/tmp
+/cv32e40px/tmp
+
+# python env on mamuthones account
+/gvsoc_env_3_12

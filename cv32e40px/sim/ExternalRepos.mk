@@ -13,7 +13,7 @@
 
 export SHELL = /bin/bash
 
-CV_CORE_REPO   ?= https://github.com/openhwgroup/cv32e40p
+CV_CORE_REPO   ?= https://github.com/FondazioneChipsIT/cv32e40px.git
 CV_CORE_BRANCH ?= master
 CV_CORE_HASH   ?= head
 CV_CORE_TAG    ?= cv32e40p_v1.8.3
