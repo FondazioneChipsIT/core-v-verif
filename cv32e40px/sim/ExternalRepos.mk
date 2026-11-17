@@ -6,7 +6,7 @@
 #                Set to 'master' to pull the master branch.
 #      *_HASH:   Value of the specific hash you wish to clone;
 #                Set to 'head' to pull the head of the branch you want.
-# THe CV32E40P repo also has a variable to clone a specific tag:
+# THe CV32E40PX repo also has a variable to clone a specific tag:
 #      *_TAG:    Value of the specific tag you wish to clone;
 #                Will override the HASH unless set to "none".
 #
@@ -21,7 +21,7 @@ CV_CORE_TAG    ?= none
 # The CV_CORE_HASH above points to version of the RTL that is newer.
 # It is logically equivalent with respect to v1.0.0 RTL freeze version with all parameters disabled.
 # There are some implementation and testbench updates in the above hash.
-# Set CV_CORE_TAG as below to point to the exact cv32e40p repo as that used at RTL freeze
+# Set CV_CORE_TAG as below to point to the exact cv32e40px repo as that used at RTL freeze
 #CV_CORE_TAG    ?= cv32e40p_v1.0.0
 
 RISCVDV_REPO    ?= https://github.com/google/riscv-dv

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-`include "cv32e40p_instr_pkg.sv"
+`include "cv32e40px_instr_pkg.sv"
 
-package cv32e40p_instr_test_pkg;
+package cv32e40px_instr_test_pkg;
 
   parameter int HWLOOP_LABEL_STR_LEN = 32;
 
   import uvm_pkg::*;
   import riscv_instr_pkg::*;
-  import cv32e40p_instr_pkg::*;
+  import cv32e40px_instr_pkg::*;
   import riscv_instr_test_pkg::*;
   import riscv_signature_pkg::*;
   import corev_instr_test_pkg::*;
@@ -96,30 +96,30 @@ package cv32e40p_instr_test_pkg;
       $sformatf("5: csrw  0x%0x, x%0d", ``XEPC, ``SCRATCH_REG0)
 
 
-  `include "cv32e40p_instr_gen_config.sv"
-  // Instruction streams specific to CV32E40P
-  // `include "instr_lib/cv32e40p_load_store_instr_lib.sv"
-  `include "instr_lib/cv32e40p_base_instr_lib.sv"
-  `include "instr_lib/cv32e40p_pulp_instr_lib.sv"
-  `include "instr_lib/cv32e40p_pulp_hwloop_instr_lib.sv"
-  `include "instr_lib/cv32e40p_float_instr_lib.sv"
-  `include "instr_lib/cv32e40p_instr_for_func_cvg_lib.sv" // directed streams to improve functional coverage holes in v2
+  `include "cv32e40px_instr_gen_config.sv"
+  // Instruction streams specific to CV32E40PX
+  // `include "instr_lib/cv32e40px_load_store_instr_lib.sv"
+  `include "instr_lib/cv32e40px_base_instr_lib.sv"
+  `include "instr_lib/cv32e40px_pulp_instr_lib.sv"
+  `include "instr_lib/cv32e40px_pulp_hwloop_instr_lib.sv"
+  `include "instr_lib/cv32e40px_float_instr_lib.sv"
+  `include "instr_lib/cv32e40px_instr_for_func_cvg_lib.sv" // directed streams to improve functional coverage holes in v2
 
   // RISCV-DV class override definitions
-  `include "cv32e40p_rand_instr_stream.sv"
-  `include "cv32e40p_illegal_instr.sv"
-  `include "cv32e40p_instr_sequence.sv"
-  `include "cv32e40p_compressed_instr.sv"
-  `include "cv32e40p_privil_reg.sv"
-  `include "cv32e40p_debug_rom_gen.sv"
-  `include "cv32e40p_asm_program_gen.sv"
-  `include "cv32e40p_load_store_instr_lib.sv"
-  `include "cv32e40p_loop_instr.sv"
+  `include "cv32e40px_rand_instr_stream.sv"
+  `include "cv32e40px_illegal_instr.sv"
+  `include "cv32e40px_instr_sequence.sv"
+  `include "cv32e40px_compressed_instr.sv"
+  `include "cv32e40px_privil_reg.sv"
+  `include "cv32e40px_debug_rom_gen.sv"
+  `include "cv32e40px_asm_program_gen.sv"
+  `include "cv32e40px_load_store_instr_lib.sv"
+  `include "cv32e40px_loop_instr.sv"
 
-  `include "cv32e40p_instr_base_test.sv"
+  `include "cv32e40px_instr_base_test.sv"
 
   // Push general purpose register to the debugger stack
-  function automatic void push_gpr_to_debugger_stack(cv32e40p_instr_gen_config cfg_corev,
+  function automatic void push_gpr_to_debugger_stack(cv32e40px_instr_gen_config cfg_corev,
                                                      ref string instr[$]);
     string        store_instr = (XLEN == 32) ? "sw" : "sd";
     bit           done_store_mscratch = 1'b0;
@@ -143,7 +143,7 @@ package cv32e40p_instr_test_pkg;
 
   // workaround for issue of debug entry during test_done by preventing load instr uses same xreg that having print_port value
   // note: this function must be called after push_gpr_to_debugger_stack()
-  function automatic void rand_xreg_after_push_gpr_to_debugger_stack(cv32e40p_instr_gen_config cfg_corev,
+  function automatic void rand_xreg_after_push_gpr_to_debugger_stack(cv32e40px_instr_gen_config cfg_corev,
                                                                      ref string instr[$]);
     int unsigned  total_gpr = 32;
     for(int i = 1; i < total_gpr; i++) begin
@@ -155,7 +155,7 @@ package cv32e40p_instr_test_pkg;
   endfunction : rand_xreg_after_push_gpr_to_debugger_stack
 
   // Push floating point registers to the debugger stack
-  function automatic void push_fpr_to_debugger_stack(cv32e40p_instr_gen_config cfg_corev,
+  function automatic void push_fpr_to_debugger_stack(cv32e40px_instr_gen_config cfg_corev,
                                                      ref string instr[$],
                                                      privileged_reg_t status);
     string store_instr;
@@ -231,7 +231,7 @@ package cv32e40p_instr_test_pkg;
   endfunction : push_fpr_to_debugger_stack
 
   // Pop general purpose register from debugger stack
-  function automatic void pop_gpr_from_debugger_stack(cv32e40p_instr_gen_config cfg_corev,
+  function automatic void pop_gpr_from_debugger_stack(cv32e40px_instr_gen_config cfg_corev,
                                                       ref string instr[$]);
     string        load_instr = (XLEN == 32) ? "lw" : "ld";
     bit           done_load_mscratch = 1'b0;
@@ -254,7 +254,7 @@ package cv32e40p_instr_test_pkg;
   endfunction : pop_gpr_from_debugger_stack
 
   // Pop floating point register from debugger stack
-  function automatic void pop_fpr_from_debugger_stack(cv32e40p_instr_gen_config cfg_corev,
+  function automatic void pop_fpr_from_debugger_stack(cv32e40px_instr_gen_config cfg_corev,
                                                       ref string instr[$],
                                                       privileged_reg_t status);
     string load_instr;
@@ -335,7 +335,7 @@ package cv32e40p_instr_test_pkg;
                                                        riscv_reg_t sp,
                                                        riscv_reg_t tp,
                                                        ref string instr[$],
-                                                       cv32e40p_instr_gen_config cfg_corev);
+                                                       cv32e40px_instr_gen_config cfg_corev);
     string store_instr = (XLEN == 32) ? "sw" : "sd";
     if (scratch inside {implemented_csr}) begin
       // Use kernal stack for handling exceptions
@@ -454,7 +454,7 @@ package cv32e40p_instr_test_pkg;
                                                         riscv_reg_t sp,
                                                         riscv_reg_t tp,
                                                         ref string instr[$],
-                                                        cv32e40p_instr_gen_config cfg_corev);
+                                                        cv32e40px_instr_gen_config cfg_corev);
 
 
     string load_instr;
@@ -537,4 +537,4 @@ package cv32e40p_instr_test_pkg;
     end
   endfunction
 
-endpackage : cv32e40p_instr_test_pkg;
+endpackage : cv32e40px_instr_test_pkg;

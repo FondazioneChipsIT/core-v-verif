@@ -329,7 +329,7 @@ riscof_sim_run: $(VCS_RISCOF_SIM_PREREQ) comp_dut_rtl_riscof_sim gen_riscof_ovps
 			$(VCS_RUN_FLAGS) \
 			$(CFG_PLUSARGS) \
 			$(RISCOF_TEST_PLUSARGS) \
-			+UVM_TESTNAME=uvmt_cv32e40p_riscof_firmware_test_c \
+			+UVM_TESTNAME=uvmt_$(CV_CORE_LC)_riscof_firmware_test_c \
 			+UVM_VERBOSITY=$(VCS_UVM_VERBOSITY) \
 			+firmware=$(TEST).hex \
 			+elf_file=$(TEST).elf \

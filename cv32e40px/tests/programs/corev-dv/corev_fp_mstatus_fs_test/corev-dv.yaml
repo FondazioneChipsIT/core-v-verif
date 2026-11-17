@@ -25,7 +25,7 @@ plusargs: >
     +num_of_sub_program=0
     +test_override_riscv_instr_stream=1
     +no_branch_jump=1
-    +directed_instr_0=cv32e40p_mstatus_fs_stream,1
+    +directed_instr_0=cv32e40px_mstatus_fs_stream,1
 
 # note:
   # 1) example yaml template for fp test with f_extension

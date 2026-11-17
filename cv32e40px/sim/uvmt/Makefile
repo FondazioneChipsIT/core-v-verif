@@ -18,7 +18,7 @@
 #
 ###############################################################################
 #
-# Makefile for the CV32E40P "uvmt_cv32" testbench.  Substantially modified
+# Makefile for the CV32E40PX "uvmt_cv32" testbench.  Substantially modified
 # from the original Makefile for the RI5CY testbench.
 #
 ###############################################################################

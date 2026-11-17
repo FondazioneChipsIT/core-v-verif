@@ -18,7 +18,7 @@
 ###############################################################################
 #
 # Generic Exception Test: this directed, manually written test-program covers
-#                         many, but not all Exceptions listed in the CV32E40P
+#                         many, but not all Exceptions listed in the CV32E40PX
 #                         exceptions verfication plan plus a number of others
 #                         intended to fill holes identified by code coverage.
 #
@@ -340,7 +340,7 @@ added_by_mike:
 #
     .word(0x4b724b57) # PULP VECOP instruction - will only cause an IIE if XPULP=0
 ###############################################################################
-# Target specific code cov holes in the cv32e40p_decoder.
+# Target specific code cov holes in the cv32e40px_decoder.
 #
 # For OPCODE_SYSTEM (instr_rdata[6:0]=='h73), instr_rdata[31:20] must be one of:
 #     12'h000 (ecall), 12'h001 (ebreak),

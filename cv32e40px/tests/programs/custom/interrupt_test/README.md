@@ -1,3 +1,3 @@
-CV32E40P Core Interrupt Testcases
+CV32E40PX Core Interrupt Testcases
 =================================
-This directory contains manually written directed testcases for interrupt testing of CV32E40P.
+This directory contains manually written directed testcases for interrupt testing of CV32E40PX.

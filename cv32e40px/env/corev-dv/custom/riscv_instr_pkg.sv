@@ -1414,7 +1414,7 @@ package riscv_instr_pkg;
   `include "isa/riscv_fp_in_x_regs_instr.sv"
   `include "isa/riscv_vector_instr.sv"
   `include "isa/riscv_compressed_instr.sv"
-  `include "isa/cv32e40p_riscv_compressed_instr.sv"
+  `include "isa/cv32e40px_riscv_compressed_instr.sv"
   `include "isa/rv32a_instr.sv"
   `include "isa/rv32c_instr.sv"
   `include "isa/rv32dc_instr.sv"

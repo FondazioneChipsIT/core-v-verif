@@ -12,8 +12,8 @@ plusargs: >
     +num_of_sub_program=0
     +insert_rand_directed_instr_stream=1
     +test_rand_directed_instr_stream_num=4
-    +directed_instr_0=cv32e40p_xpulp_mac_stream_test,2
-    +directed_instr_1=cv32e40p_xpulp_short_rand_stream,2
+    +directed_instr_0=cv32e40px_xpulp_mac_stream_test,2
+    +directed_instr_1=cv32e40px_xpulp_short_rand_stream,2
     +directed_instr_2=riscv_int_numeric_corner_stream,2
     +directed_instr_3=riscv_load_store_rand_instr_stream,1
     +rand_directed_instr_0=riscv_mem_region_stress_test,1

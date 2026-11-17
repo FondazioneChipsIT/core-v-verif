@@ -20,7 +20,7 @@
 
 # Assumed environment variables set by Makefile/environment
 # CORE_V_VERIF : Root directory of the core-v-verif checkout
-# CV_CORE : Core-V core being tested (e.g. CV32E40X, CV32E40S, CV32E40P)
+# CV_CORE : Core-V core being tested (e.g. CV32E40X, CV32E40S, CV32E40PX)
 
 load -refinement $::env(CORE_V_VERIF)/$::env(CV_CORE)/sim/tools/xrun/$::env(CV_CORE)_no_pulp.hierarchy.vRefine
 load -refinement $::env(CORE_V_VERIF)/$::env(CV_CORE)/sim/tools/xrun/$::env(CV_CORE)_no_pulp.auto.vRefine
@@ -28,7 +28,7 @@ load -refinement $::env(CORE_V_VERIF)/$::env(CV_CORE)/sim/tools/xrun/$::env(CV_C
 
 report_metrics \
     -detail \
-    -view CV32E40P(openhw) \
+    -view CV32E40PX(openhw) \
     -block_view Uncovered \
     -expression_view Uncovered \
     -inst \

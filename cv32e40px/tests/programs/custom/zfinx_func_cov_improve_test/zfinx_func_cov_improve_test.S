@@ -21,7 +21,7 @@ main:
 #endif
 
     ######### FOR PULP_FPU CFG - START #########
-      # for uvme_cv32e40p_fp_instr_covg/cg_f_inst_reg/cr_non_rv32f_rd_rv32f_rs[1/2/3] - start
+      # for uvme_cv32e40px_fp_instr_covg/cg_f_inst_reg/cr_non_rv32f_rd_rv32f_rs[1/2/3] - start
         .align 2
 
         // 1 - jal -> fsub (rs1, rs2)
@@ -3757,10 +3757,10 @@ _fsgnjx_jr31:   fsgnjx.s      x31, x31, x31
         // (rs1)            refer lines 190-253
         // (rs1)            refer lines 256-351
 
-      # for uvme_cv32e40p_fp_instr_covg/cg_f_inst_reg/cr_non_rv32f_rd_rv32f_rs[1/2/3] - end
+      # for uvme_cv32e40px_fp_instr_covg/cg_f_inst_reg/cr_non_rv32f_rd_rv32f_rs[1/2/3] - end
 
 
-      # for uvme_cv32e40p_fp_instr_covg/cg_f_inst_reg/cr_rv32f_rd_non_rv32f_rs[1/2]_eq_nonzero_lat - start
+      # for uvme_cv32e40px_fp_instr_covg/cg_f_inst_reg/cr_rv32f_rd_non_rv32f_rs[1/2]_eq_nonzero_lat - start
         
         fdiv.s  x0, x0, x0
         bne     x0, x0, _branch_0
@@ -3915,7 +3915,7 @@ _fsqrt_jr_3:
 _fsqrt_jr_16:
 // below codes are not straight forward and for operand forward between fsqrt->jalr : end
 
-      # for uvme_cv32e40p_fp_instr_covg/cg_f_inst_reg/cr_rv32f_rd_non_rv32f_rs[1/2]_eq_nonzero_lat - end
+      # for uvme_cv32e40px_fp_instr_covg/cg_f_inst_reg/cr_rv32f_rd_non_rv32f_rs[1/2]_eq_nonzero_lat - end
 
     ######### FOR PULP_FPU CFG - END   #########
 

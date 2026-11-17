@@ -32,7 +32,7 @@
 **  - Compressed instructions
 **  - Retired instructions
 **
-** Make sure to instantiate cv32e40p_wrapper with the parameter
+** Make sure to instantiate cv32e40px_wrapper with the parameter
 ** NUM_MHPMCOUNTERS = 1 (or higher)
 **
 *******************************************************************************

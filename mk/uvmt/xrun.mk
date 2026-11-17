@@ -456,7 +456,7 @@ riscof_sim_run: $(XRUN_RISCOF_SIM_PREREQ) comp_dut_rtl_riscof_sim gen_riscof_ovp
 		$(XRUN_COMP_RUN) \
 		$(XRUN_RUN_WAVES_FLAGS) \
 		-covtest $(TEST) \
-		+UVM_TESTNAME=uvmt_cv32e40p_riscof_firmware_test_c \
+		+UVM_TESTNAME=uvmt_$(CV_CORE_LC)_riscof_firmware_test_c \
 		$(CFG_PLUSARGS) \
 		$(RISCOF_TEST_PLUSARGS) \
 		+firmware=$(TEST).hex \

@@ -16,10 +16,10 @@ These TCL scripts can be passed to Xcelium by the core-v-verif Makefiles when us
 These XML files should be created using coverage tools such as IMC or Vmanager.  These are used to generate coverage reports that focus on necessary coverage while removing exceptions that are unhittable or not significant for the design being verified.
 
 *Note that some files are automatically generated and some are manually maintained.  This is indicated in the table.*
-*Note the files in the Table below were automatically generated for CV32E40P v1.0.0.  These files are not expected to work for any other version of CV32E40P.*
+*Note the files in the Table below were automatically generated for CV32E40PX v1.0.0.  These files are not expected to work for any other version of CV32E40PX.*
 
 | File | Maintenance | Description |
 |------|-------------|-------------|
-| cv32e40p_no_pulp.hierarchy.vRefine | Manual | Removes hierarchies from coverage database that are not to be considered for coverage (e.g. testbench |
-| cv32e40p_no_pulp.auto.vRefine | Automatic | Auto-generated refinements based on parameter usage for the CV32E40P without PULP extensions.  *Do not manually edit* |
-| cv32e40p_no_pulp.manual.vRefine | Manual | Manually added coverage exception based on deesign verification reviews. |
+| cv32e40px_no_pulp.hierarchy.vRefine | Manual | Removes hierarchies from coverage database that are not to be considered for coverage (e.g. testbench |
+| cv32e40px_no_pulp.auto.vRefine | Automatic | Auto-generated refinements based on parameter usage for the CV32E40PX without PULP extensions.  *Do not manually edit* |
+| cv32e40px_no_pulp.manual.vRefine | Manual | Manually added coverage exception based on deesign verification reviews. |

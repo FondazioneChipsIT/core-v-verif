@@ -15,7 +15,7 @@
  */
 
 
-class cv32e40p_instr extends riscv_instr;
+class cv32e40px_instr extends riscv_instr;
 
   // additionnal helper fields
   bit is_post_incr;
@@ -24,30 +24,30 @@ class cv32e40p_instr extends riscv_instr;
 
   bit hw_loop_label;
 
-  static cv32e40p_instr         cv32e40p_instr_template[riscv_instr_name_t];
+  static cv32e40px_instr         cv32e40px_instr_template[riscv_instr_name_t];
 
   // All derived instructions
-  `uvm_object_utils(cv32e40p_instr)
+  `uvm_object_utils(cv32e40px_instr)
   `uvm_object_new
 
-  static function cv32e40p_instr create_instr(riscv_instr_name_t instr_name);
+  static function cv32e40px_instr create_instr(riscv_instr_name_t instr_name);
     uvm_object obj;
-    cv32e40p_instr inst;
+    cv32e40px_instr inst;
     string instr_class_name;
     uvm_coreservice_t coreservice = uvm_coreservice_t::get();
     uvm_factory factory = coreservice.get_factory();
     instr_class_name = {"riscv_", instr_name.name(), "_instr"};
-    obj = factory.create_object_by_name(instr_class_name, "cv32e40p_instr", instr_class_name);
+    obj = factory.create_object_by_name(instr_class_name, "cv32e40px_instr", instr_class_name);
     if (obj == null) begin
-      `uvm_fatal("cv32e40p_instr", $sformatf("Failed to create instr: %0s", instr_class_name))
+      `uvm_fatal("cv32e40px_instr", $sformatf("Failed to create instr: %0s", instr_class_name))
     end
     if (!$cast(inst, obj)) begin
-      `uvm_fatal("cv32e40p_instr", $sformatf("Failed to cast instr: %0s", instr_class_name))
+      `uvm_fatal("cv32e40px_instr", $sformatf("Failed to cast instr: %0s", instr_class_name))
     end
     return inst;
   endfunction : create_instr
 
-  static function cv32e40p_instr get_xpulp_instr( riscv_instr_name_t include_instr[$] = {},
+  static function cv32e40px_instr get_xpulp_instr( riscv_instr_name_t include_instr[$] = {},
                                                 riscv_instr_name_t exclude_instr[$] = {},
                                                 riscv_instr_category_t include_category[$] = {},
                                                 riscv_instr_category_t exclude_category[$] = {});
@@ -56,10 +56,10 @@ class cv32e40p_instr extends riscv_instr;
     riscv_instr_name_t disallowed_instr [$] = { unsupported_instr, exclude_instr };
     riscv_instr_name_t valid_instr[$];
     riscv_instr instr;
-    cv32e40p_instr cv32_instr;
+    cv32e40px_instr cv32_instr;
 
     instr = riscv_instr::type_id::create();
-    cv32_instr = cv32e40p_instr::type_id::create();
+    cv32_instr = cv32e40px_instr::type_id::create();
 
     // if a specific instruction list is wanted, return it along with exclusions
     if (include_instr.size() > 0) begin
@@ -104,7 +104,7 @@ class cv32e40p_instr extends riscv_instr;
 
   endfunction
 
-  static function cv32e40p_instr get_cv32e40p_rand_instr(cv32e40p_instr instr_h = null,
+  static function cv32e40px_instr get_cv32e40px_rand_instr(cv32e40px_instr instr_h = null,
                                              riscv_instr_name_t include_instr[$] = {},
                                              riscv_instr_name_t exclude_instr[$] = {},
                                              riscv_instr_category_t include_category[$] = {},
@@ -157,13 +157,13 @@ class cv32e40p_instr extends riscv_instr;
             !(name inside {disallowed_instr});
           }
        }) begin
-         `uvm_fatal("cv32e40p_instr", "Cannot generate random instruction")
+         `uvm_fatal("cv32e40px_instr", "Cannot generate random instruction")
        end
      end
      // Shallow copy for all relevant fields, avoid using create() to improve performance
-     instr_h = new cv32e40p_instr_template[name];
+     instr_h = new cv32e40px_instr_template[name];
      return instr_h;
-  endfunction : get_cv32e40p_rand_instr
+  endfunction : get_cv32e40px_rand_instr
 
   static function riscv_instr get_load_store_instr(riscv_instr_name_t load_store_instr[$] = {});
     riscv_instr instr_h;
@@ -195,14 +195,14 @@ class cv32e40p_instr extends riscv_instr;
      return instr_h;
   endfunction : get_load_store_instr
 
-  static function cv32e40p_instr get_cv32e40p_instr(riscv_instr_name_t name);
+  static function cv32e40px_instr get_cv32e40px_instr(riscv_instr_name_t name);
      riscv_instr instr_h;
-     cv32e40p_instr cv32_instr;
+     cv32e40px_instr cv32_instr;
 
-     cv32_instr = cv32e40p_instr::type_id::create();
+     cv32_instr = cv32e40px_instr::type_id::create();
 
      if (!instr_template.exists(name)) begin
-       `uvm_fatal("cv32e40p_instr", $sformatf("Cannot get instr %0s", name.name()))
+       `uvm_fatal("cv32e40px_instr", $sformatf("Cannot get instr %0s", name.name()))
      end
      // Shallow copy for all relevant fields, avoid using create() to improve performance
      instr_h = new instr_template[name];
@@ -211,7 +211,7 @@ class cv32e40p_instr extends riscv_instr;
      return cv32_instr;
 
      //return instr_h;
-  endfunction : get_cv32e40p_instr
+  endfunction : get_cv32e40px_instr
 
   // Disable the rand mode for unused operands to randomization performance
   virtual function void set_rand_mode();
@@ -669,7 +669,7 @@ class cv32e40p_instr extends riscv_instr;
   endfunction
 
   virtual function void do_copy(uvm_object rhs);
-    cv32e40p_instr rhs_;
+    cv32e40px_instr rhs_;
     super.copy(rhs);
     assert($cast(rhs_, rhs));
     this.category = rhs_.category;

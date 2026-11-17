@@ -6,7 +6,7 @@ plusargs: >
     +instr_cnt=2000
     +num_of_sub_program=0
     +directed_instr_0=riscv_load_store_rand_instr_stream,1
-    +directed_instr_1=cv32e40p_xpulp_rand_stream,2
+    +directed_instr_1=cv32e40px_xpulp_rand_stream,2
     +no_fence=0
     +no_data_page=0
     +randomize_csr=1

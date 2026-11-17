@@ -43,7 +43,7 @@ int main(int argc, char **argv, char **env)
     top = new Vtb_top_verilator();
 
     svSetScope(svGetScopeFromName(
-        "TOP.tb_top_verilator.cv32e40p_core_tb_wrapper_i.ram_i.dp_ram_i"));
+        "TOP.tb_top_verilator.cv32e40px_core_tb_wrapper_i.ram_i.dp_ram_i"));
     Verilated::scopesDump();
 
 #ifdef FST_TRACE
@@ -64,7 +64,7 @@ int main(int argc, char **argv, char **env)
 
 #ifdef MCY
     svSetScope(svGetScopeFromName(
-        "TOP.tb_top_verilator.cv32e40p_core_tb_wrapper_i.riscv_core_i.ex_stage_i.alu_i.int_div.div_i"));
+        "TOP.tb_top_verilator.cv32e40px_core_tb_wrapper_i.riscv_core_i.ex_stage_i.alu_i.int_div.div_i"));
     svLogicVecVal idx = {0};
     idx.aval = mutidx;
     set_mutidx(&idx);

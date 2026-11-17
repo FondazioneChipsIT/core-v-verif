@@ -42,12 +42,12 @@ PROJ_ROOT_DIR=$PWD/../../../../../..
 TEST_DIR=$PROJ_ROOT_DIR/cv32/tests/core
 
 # create modified manifest
-grep -v "riscv_alu_div.sv" $PROJ_ROOT_DIR/core-v-cores/cv32e40p/cv32e40p_manifest.flist > mutated_manifest.flist
+grep -v "riscv_alu_div.sv" $PROJ_ROOT_DIR/core-v-cores/cv32e40px/cv32e40px_manifest.flist > mutated_manifest.flist
 echo "../../riscv_alu_div_mutated_wrapper.sv" >> mutated_manifest.flist
 echo "mutated.sv" >> mutated_manifest.flist
 
 # build verilator testbench with mutated module
-MAKEFLAGS="CV32E40P_MANIFEST=mutated_manifest.flist PROJ_ROOT_DIR=$PROJ_ROOT_DIR"
+MAKEFLAGS="CV32E40PX_MANIFEST=mutated_manifest.flist PROJ_ROOT_DIR=$PROJ_ROOT_DIR"
 MAKEFILE=../../Makefile
 make -f $MAKEFILE $MAKEFLAGS testbench_verilator
 

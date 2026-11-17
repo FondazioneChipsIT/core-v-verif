@@ -16,7 +16,7 @@
 **
 *******************************************************************************
 **
-** Sanity test for the CV32E40P core.  Reads the MVENDORID, MISA, MARCHID and
+** Sanity test for the CV32E40PX core.  Reads the MVENDORID, MISA, MARCHID and
 **                                     MIMPID CSRs and prints some useful (?)
 **                                     messages to stdout.  Will fail if these
 **                                     CSRs do not match expected values.
@@ -66,26 +66,26 @@ int main(int argc, char *argv[])
 
     /* Check MISA CSR: if its zero, it might not be implemented at all */
     if (misa_rval != EXP_MISA) {
-      printf("\tERROR: CSR MISA reads as 0x%x - should be 0x%x for this release of CV32E40P!\n\n", misa_rval, EXP_MISA);
+      printf("\tERROR: CSR MISA reads as 0x%x - should be 0x%x for this release of CV32E40PX!\n\n", misa_rval, EXP_MISA);
       return EXIT_FAILURE;
     }
 
-    /* Check MARCHID CSR: 0x4 is the value assigned by the RISC-V Foundation to CV32E40P */
+    /* Check MARCHID CSR: 0x4 is the value assigned by the RISC-V Foundation to CV32E40PX */
     if (marchid_rval != 0x00000004) {
-      printf("\tERROR: CSR MARCHID reads as 0x%x - should be 0x00000004 for CV32E40P.\n\n", marchid_rval);
+      printf("\tERROR: CSR MARCHID reads as 0x%x - should be 0x00000004 for CV32E40PX.\n\n", marchid_rval);
       return EXIT_FAILURE;
     }
 
-    /* Check MIMPID CSR: 0x0 is the value assigned by the OpenHW Group to the first release of CV32E40P */
+    /* Check MIMPID CSR: 0x0 is the value assigned by the OpenHW Group to the first release of CV32E40PX */
     if (mimpid_rval != EXP_MIMPID) {
-      printf("\tERROR: CSR MIMPID reads as 0x%x - should be 0x%x for this release of CV32E40P.\n\n", mimpid_rval, EXP_MIMPID);
+      printf("\tERROR: CSR MIMPID reads as 0x%x - should be 0x%x for this release of CV32E40PX.\n\n", mimpid_rval, EXP_MIMPID);
       return EXIT_FAILURE;
     }
 
     /* Print a banner to stdout and interpret MISA CSR */
     printf("\nHELLO WORLD!!!\n");
-    printf("This is the OpenHW Group CV32E40P CORE-V processor core.\n");
-    printf("CV32E40P is a RISC-V ISA compliant core with the following attributes:\n");
+    printf("This is the OpenHW Group CV32E40PX CORE-V processor core.\n");
+    printf("CV32E40PX is a RISC-V ISA compliant core with the following attributes:\n");
     printf("\tmvendorid = 0x%x\n", mvendorid_rval);
     printf("\tmarchid   = 0x%x\n", marchid_rval);
     printf("\tmimpid    = 0x%x\n", mimpid_rval);

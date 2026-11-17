@@ -21,7 +21,7 @@ main:
 #endif
 
     ######### FOR PULP_FPU CFG - START #########
-      # for uvme_cv32e40p_fp_instr_covg/cg_f_inst_reg/cr_non_rv32f_rd_rv32f_rs1 - start
+      # for uvme_cv32e40px_fp_instr_covg/cg_f_inst_reg/cr_non_rv32f_rd_rv32f_rs1 - start
         .align 2
 
         // 1
@@ -1577,7 +1577,7 @@ _jrsw31:fsw     f31, -8(x31)
         auipc   x31, 0x40000
         flw     f31, 0(x31)
 
-      # for uvme_cv32e40p_fp_instr_covg/cg_f_inst_reg/cr_non_rv32f_rd_rv32f_rs1 - end
+      # for uvme_cv32e40px_fp_instr_covg/cg_f_inst_reg/cr_non_rv32f_rd_rv32f_rs1 - end
     ######### FOR PULP_FPU CFG - END   #########
 
     li x18, TEST_PASS

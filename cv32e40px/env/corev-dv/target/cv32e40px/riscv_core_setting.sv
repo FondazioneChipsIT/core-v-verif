@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-`include "cv32e40p_supported_isa.svh"
+`include "cv32e40px_supported_isa.svh"
 
 //-----------------------------------------------------------------------------
 // Processor feature configuration

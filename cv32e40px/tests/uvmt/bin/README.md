@@ -1,1 +1,1 @@
-Place scripts related to CV32E40P tests here.
+Place scripts related to CV32E40PX tests here.

@@ -394,7 +394,7 @@ endgroup : cg_rv32fc_lssp
 
 class uvme_rv32f_isa_covg extends uvm_component;
 
-  uvme_cv32e40p_cfg_c cfg;
+  uvme_cv32e40px_cfg_c cfg;
 
   bit zfinx;
 
@@ -443,7 +443,7 @@ function void uvme_rv32f_isa_covg::build_phase(uvm_phase phase);
 
   super.build_phase(phase);
 
-  void'(uvm_config_db#(uvme_cv32e40p_cfg_c)::get(this, "", "cfg", cfg));
+  void'(uvm_config_db#(uvme_cv32e40px_cfg_c)::get(this, "", "cfg", cfg));
   if (cfg == null) begin
     `uvm_fatal("RV32FISACOVG", "Configuration handle is null")
   end

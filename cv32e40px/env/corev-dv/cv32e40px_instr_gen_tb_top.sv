@@ -24,7 +24,7 @@ module cv32e40px_instr_gen_tb_top;
   import uvm_pkg::*;
   import riscv_instr_test_pkg::*;
   import corev_instr_test_pkg::*;
-  import cv32e40p_instr_test_pkg::*;
+  import cv32e40px_instr_test_pkg::*;
 
   initial begin
     run_test();

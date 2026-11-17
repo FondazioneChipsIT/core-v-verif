@@ -1,5 +1,5 @@
 name: default
-description: Default configuration for CV32E40P simulations
+description: Default configuration for CV32E40PX simulations
 compile_flags:
     +define+NO_PULP
 ovpsim: >

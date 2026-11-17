@@ -22,7 +22,7 @@
 -f ${GVSOC_BRIDGE_HOME}/sv/gvsoc_rvvi.f
 
 // Gives the model the interrupt and debug inputs, and checks the retirement order
-${TBSRC_HOME}/uvmt/uvmt_cv32e40p_gvsoc_decision_monitor.sv
+${TBSRC_HOME}/uvmt/uvmt_cv32e40px_gvsoc_decision_monitor.sv
 
 // GVSOC test bench wrapper
-${TBSRC_HOME}/uvmt/uvmt_cv32e40p_gvsoc_wrap.sv
+${TBSRC_HOME}/uvmt/uvmt_cv32e40px_gvsoc_wrap.sv

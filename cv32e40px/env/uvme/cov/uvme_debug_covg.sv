@@ -26,7 +26,7 @@ class uvme_debug_covg extends uvm_component;
     /*
     * Class members
     */
-    uvme_cv32e40p_cntxt_c  cntxt;
+    uvme_cv32e40px_cntxt_c  cntxt;
 
 
     `uvm_component_utils(uvme_debug_covg);
@@ -664,7 +664,7 @@ endfunction : new
 function void uvme_debug_covg::build_phase(uvm_phase phase);
     super.build_phase(phase);
 
-    void'(uvm_config_db#(uvme_cv32e40p_cntxt_c)::get(this, "", "cntxt", cntxt));
+    void'(uvm_config_db#(uvme_cv32e40px_cntxt_c)::get(this, "", "cntxt", cntxt));
     if (cntxt == null) begin
         `uvm_fatal("DEBUGCOVG", "No cntxt object passed to model");
     end

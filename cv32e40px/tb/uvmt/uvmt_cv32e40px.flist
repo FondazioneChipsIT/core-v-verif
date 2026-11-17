@@ -35,25 +35,25 @@
 -f ${DV_SVLIB_PATH}/svlib_pkg.flist
 
 // Environments
--f ${DV_UVME_PATH}/uvme_cv32e40p_pkg.flist
+-f ${DV_UVME_PATH}/uvme_cv32e40px_pkg.flist
 
-// CV32E40P test bench Directories
+// CV32E40PX test bench Directories
 +incdir+${DV_UVMT_PATH}
 +incdir+${DV_UVMT_PATH}/../../tests/uvmt
 +incdir+${DV_UVMT_PATH}/../../tests/uvmt/base-tests
 +incdir+${DV_UVMT_PATH}/../../tests/uvmt/compliance-tests
 +incdir+${DV_UVMT_PATH}/../../tests/uvmt/vseq
 
-// CV32E40P tests (includes constants/macros/types meant for test bench)
+// CV32E40PX tests (includes constants/macros/types meant for test bench)
 +incdir+${TBSRC_HOME}
-${DV_UVMT_PATH}/uvmt_cv32e40p_pkg.sv
+${DV_UVMT_PATH}/uvmt_cv32e40px_pkg.sv
 
-// CV32E40P test bench files
-${DV_UVMT_PATH}/uvmt_cv32e40p_dut_wrap.sv
-${DV_UVMT_PATH}/uvmt_cv32e40p_tb.sv
-${TBSRC_HOME}/uvmt/uvmt_cv32e40p_tb.sv
-${TBSRC_HOME}/uvmt/uvmt_cv32e40p_dut_wrap.sv
+// CV32E40PX test bench files
+${DV_UVMT_PATH}/uvmt_cv32e40px_dut_wrap.sv
+${DV_UVMT_PATH}/uvmt_cv32e40px_tb.sv
+${TBSRC_HOME}/uvmt/uvmt_cv32e40px_tb.sv
+${TBSRC_HOME}/uvmt/uvmt_cv32e40px_dut_wrap.sv
 
 // FIXME:STR:Find a better location
-${DV_UVMT_PATH}/uvmt_cv32e40p_interrupt_assert.sv
-${DV_UVMT_PATH}/uvmt_cv32e40p_debug_assert.sv
+${DV_UVMT_PATH}/uvmt_cv32e40px_interrupt_assert.sv
+${DV_UVMT_PATH}/uvmt_cv32e40px_debug_assert.sv

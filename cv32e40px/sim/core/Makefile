@@ -49,7 +49,7 @@ CORE_V_VERIF   = $(abspath $(MAKE_PATH)/../../..)
 DATE           = $(shell date +%F)
 WAVES          = 0
 
-CV_CORE       ?= CV32E40P
+CV_CORE       ?= CV32E40PX
 CV_CORE_LC     = $(shell echo $(CV_CORE) | tr A-Z a-z)
 CV_CORE_UC     = $(shell echo $(CV_CORE) | tr a-z A-Z)
 
@@ -81,7 +81,7 @@ TEST         ?= hello-world
 #       TEST_DESCRIPTION=Simple hello-world sanity test
 #       TEST_NAME=hello-world
 #       TEST_PROGRAM=hello-world
-#       TEST_TEST_DIR=/home/mike/GitHubRepos/MikeOpenHWGroup/core-v-verif/master/cv32e40p/tests/programs/custom/hello-world
+#       TEST_TEST_DIR=/home/mike/GitHubRepos/MikeOpenHWGroup/core-v-verif/master/cv32e40px/tests/programs/custom/hello-world
 #       TEST_UVM_TEST=uvmt_$(CV_CORE_LC)_firmware_test_c
 
 YAML2MAKE = $(CORE_V_VERIF)/bin/yaml2make
@@ -134,7 +134,7 @@ SIMV                    = ./simv
 # dsim is the Metrics Technologies SystemVerilog simulator  (https://metrics.ca/)
 DSIM                    = dsim
 DSIM_HOME               = /tools/Metrics/dsim
-DSIM_CMP_FLAGS          = +define+CORE_TB +define+CV32E40P_APU_TRACE +acc+b -timescale 1ns/1ps $(SV_CMP_FLAGS)
+DSIM_CMP_FLAGS          = +define+CORE_TB +define+CV32E40PX_APU_TRACE +acc+b -timescale 1ns/1ps $(SV_CMP_FLAGS)
 DSIM_SUPPRESS           = -suppress MultiBlockWrite -suppress IneffectiveDynamicCast
 DSIM_RUN_FLAGS          =
 DSIM_UVM_ARGS           = +incdir+$(UVM_HOME)/src $(UVM_HOME)/src/uvm_pkg.sv
@@ -149,7 +149,7 @@ endif
 
 # xrun is the Cadence xcelium SystemVerilog simulator (https://cadence.com/)
 XRUN              = xrun
-XRUN_FLAGS        = -clean -smartorder -sv -top worklib.tb_top -timescale 1ns/1ps +define+CV32E40P_APU_TRACE -uvmhome CDNS-1.2-ML
+XRUN_FLAGS        = -clean -smartorder -sv -top worklib.tb_top -timescale 1ns/1ps +define+CV32E40PX_APU_TRACE -uvmhome CDNS-1.2-ML
 XRUN_DIR          = xcelium.d
 
 # verilator configuration
@@ -186,7 +186,7 @@ TBSRC_TOP   := $(TBSRC_HOME)/core/tb_top.sv
 TBSRC_CORE  := $(TBSRC_HOME)/core
 TBSRC_PKG   := $(TBSRC_CORE)/tb_riscv/include/perturbation_defines.sv
 TBSRC       := $(TBSRC_CORE)/tb_top.sv \
-               $(TBSRC_CORE)/cv32e40p_core_tb_wrapper.sv \
+               $(TBSRC_CORE)/cv32e40px_core_tb_wrapper.sv \
                $(TBSRC_CORE)/mm_ram.sv \
                $(TBSRC_CORE)/dp_ram.sv \
                $(TBSRC_CORE)/tb_riscv/riscv_random_stall.sv \
@@ -200,7 +200,7 @@ RTLSRC_VLOG_TB_TOP	:= $(basename $(notdir $(TBSRC_TOP)))
 RTLSRC_VOPT_TB_TOP	:= $(addsuffix _vopt, $(RTLSRC_VLOG_TB_TOP))
 
 TBSRC_VERI  := $(TBSRC_CORE)/tb_top_verilator.sv \
-               $(TBSRC_CORE)/cv32e40p_core_tb_wrapper.sv \
+               $(TBSRC_CORE)/cv32e40px_core_tb_wrapper.sv \
                $(TBSRC_CORE)/tb_riscv/riscv_rvalid_stall.sv \
                $(TBSRC_CORE)/tb_riscv/riscv_gnt_stall.sv \
                $(TBSRC_CORE)/mm_ram.sv \
@@ -220,7 +220,7 @@ CV_CORE_RTLSRC  := $(filter-out $(CV_CORE_PKG)/rtl/$(CV_CORE_LC)_register_file_l
 # FIXME: temporarily using a local manifest for the core.
 #        This is BAD PRACTICE and will be fixed with
 #        https://github.com/openhwgroup/CV_CORE/pull/421 is resolved.
-CV_CORE_MANIFEST    := $(CV_CORE_PKG)/cv32e40p_manifest.flist
+CV_CORE_MANIFEST    := $(CV_CORE_PKG)/cv32e40px_manifest.flist
 export DESIGN_RTL_DIR = $(CV_CORE_PKG)/rtl
 
 # Shorthand rules for convience
@@ -502,7 +502,7 @@ sanity-veri-run:
 
 testbench_verilator: CV_CORE_pkg $(TBSRC_VERI) $(TBSRC_PKG)
 	@echo "$(BANNER)"
-	@echo "* Compiling CORE TB and CV32E40P with Verilator"
+	@echo "* Compiling CORE TB and CV32E40PX with Verilator"
 	@echo "$(BANNER)"
 	$(VERILATOR) --cc --sv --exe \
 		$(VERI_TRACE) \
@@ -686,7 +686,7 @@ riviera-clean:
 
 clone_$(CV_CORE_LC)_rtl:
 	@echo "$(BANNER)"
-	@echo "* Cloning CV32E40P RTL model"
+	@echo "* Cloning CV32E40PX RTL model"
 	@echo "$(BANNER)"
 	$(CLONE_CV_CORE_CMD)
 

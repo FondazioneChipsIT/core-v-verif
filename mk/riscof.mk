@@ -26,7 +26,7 @@
 RISCOF_ARCH_TEST_SUITE_PKG   := $(CORE_V_VERIF)/$(CV_CORE_LC)/vendor_lib/riscof/riscof_arch_test_suite
 RISCOF_SIM ?= NO
 
-RISCOF_TEST_PLUSARGS ?= +signature=DUT-cv32e40p.signature
+RISCOF_TEST_PLUSARGS ?= +signature=DUT-$(CV_CORE_LC).signature
 RISCOF_TEST_RUN_DIR ?=$(SIM_CFG_RESULTS)/riscof_dut_work
 SIM_RISCOF_ARCH_TESTS_RESULTS ?= $(RISCOF_TEST_RUN_DIR)
 

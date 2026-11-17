@@ -25,7 +25,7 @@
 **  - Count load use hazards
 **  - Count jump register hazards
 **
-** Make sure to instantiate cv32e40p_wrapper with the parameter
+** Make sure to instantiate cv32e40px_wrapper with the parameter
 ** NUM_MHPMCOUNTERS = 1 (or higher)
 **
 ** Make sure to only run this test without wait states on instr_gnt_i/

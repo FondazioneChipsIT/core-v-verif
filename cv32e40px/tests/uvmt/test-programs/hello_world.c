@@ -16,7 +16,7 @@
 ** 
 *******************************************************************************
 **
-** Sanity test for the CV32E40P core.  Reads the MISA and MVENDORID CSRs and
+** Sanity test for the CV32E40PX core.  Reads the MISA and MVENDORID CSRs and
 **                                     prints some useful (?) messages to
 **                                     stdout.  Will fail if MISA is not sane.
 **
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     }
 
     /* Print a banner to stdout and interpret MISA CSR */
-    printf("\nThis is the OpenHW Group CV32E40P RISC-V processor core\n");
+    printf("\nThis is the OpenHW Group CV32E40PX RISC-V processor core\n");
     printf("running an example \"custom\" test-program.\n");
     printf("Please consult the CORE-V Verification Strategy for more information\n");
     printf("on the distinction between a UVM testcase and a core test-program.\n");

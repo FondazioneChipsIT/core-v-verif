@@ -21,7 +21,7 @@
 // Note: 
 // 1) This coverage model is to replace v1 model (uvme_interrupt_covg)
 // 2) all cvg have similar cvgs as defined in v1 model
-// 3) It uses uvmt_cv32e40p_rvvi_if
+// 3) It uses uvmt_cv32e40px_rvvi_if
 
 `ifndef UVME_INTERRUPT_COVG_V2
 `define UVME_INTERRUPT_COVG_V2
@@ -32,7 +32,7 @@ class uvme_interrupt_covg_v2 # (
 ) extends uvm_component;
 
   // PROPERTIES - START
-  virtual             uvmt_cv32e40p_rvvi_if #( .XLEN(XLEN), .ILEN(ILEN)) cv32e40p_rvvi_vif;
+  virtual             uvmt_cv32e40px_rvvi_if #( .XLEN(XLEN), .ILEN(ILEN)) cv32e40px_rvvi_vif;
 
   string              _header           = "INTERRUPT_COVG_V2";
   bit                 en_cvg_sampling   = 1;
@@ -122,8 +122,8 @@ class uvme_interrupt_covg_v2 # (
 
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
-    if (!(uvm_config_db#(virtual uvmt_cv32e40p_rvvi_if)::get(this, "", "cv32e40p_rvvi_vif", cv32e40p_rvvi_vif))) begin
-        `uvm_fatal(_header, "cv32e40p_rvvi_vif no found in uvm_config_db");
+    if (!(uvm_config_db#(virtual uvmt_cv32e40px_rvvi_if)::get(this, "", "cv32e40px_rvvi_vif", cv32e40px_rvvi_vif))) begin
+        `uvm_fatal(_header, "cv32e40px_rvvi_vif no found in uvm_config_db");
     end
     if ($test$plusargs("skip_sampling_uvme_interrupt_covg_v2")) begin
       `uvm_info(_header, "Skip uvme_interrupt_covg_v2 cvg sampling due to test intention", UVM_WARNING);
@@ -132,12 +132,12 @@ class uvme_interrupt_covg_v2 # (
   endfunction : build_phase
 
   function bit pc_is_mtvec_addr();
-    if (cv32e40p_rvvi_vif.pc_rdata >= cv32e40p_rvvi_vif.mtvec_base_addr && cv32e40p_rvvi_vif.pc_rdata < (cv32e40p_rvvi_vif.mtvec_base_addr + 32*4)) return 1; // direct or vector mode
+    if (cv32e40px_rvvi_vif.pc_rdata >= cv32e40px_rvvi_vif.mtvec_base_addr && cv32e40px_rvvi_vif.pc_rdata < (cv32e40px_rvvi_vif.mtvec_base_addr + 32*4)) return 1; // direct or vector mode
     else return 0;
   endfunction : pc_is_mtvec_addr
 
   function bit is_mcause_irq();
-    return cv32e40p_rvvi_vif.csr_mcause_irq;
+    return cv32e40px_rvvi_vif.csr_mcause_irq;
   endfunction : is_mcause_irq
 
   // illegal instruction - ecall - ebreak - compress
@@ -145,11 +145,11 @@ class uvme_interrupt_covg_v2 # (
     super.run_phase(phase);
 
     forever begin
-      @(posedge cv32e40p_rvvi_vif.clk);
-      if (cv32e40p_rvvi_vif.valid) begin : VALID_IS_HIGH
+      @(posedge cv32e40px_rvvi_vif.clk);
+      if (cv32e40px_rvvi_vif.valid) begin : VALID_IS_HIGH
 
-        current_insn = get_user_def_c_insn_if_true(cv32e40p_rvvi_vif.insn);
-        if (cv32e40p_rvvi_vif.trap) is_trap = 1;
+        current_insn = get_user_def_c_insn_if_true(cv32e40px_rvvi_vif.insn);
+        if (cv32e40px_rvvi_vif.trap) is_trap = 1;
         else is_trap = 0;
 
         // IRQ related - START

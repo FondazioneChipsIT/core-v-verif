@@ -12,14 +12,14 @@ made preventing _you_ from doing so).  Look for the `gen_corev-dv` target in the
 for an example of how core-v-verif runs the generator.
 <br><br>
 
-## Extensions to Riscv-dv specific to cv32e40p
+## Extensions to Riscv-dv specific to cv32e40px
 Common extensions are detailed in the top level `core-v-verif/lib/corev-dv/README.md`
 
 --------------------------------------------------------------------------------
 
-#### cv32e40p\_asm\_program\_gen
+#### cv32e40px\_asm\_program\_gen
 Description:<br>
-Implements support for cv32e40p fast interrupt handler.
+Implements support for cv32e40px fast interrupt handler.
 
 | Extends                 |
 |:------------------------|
@@ -35,7 +35,7 @@ Implements support for cv32e40p fast interrupt handler.
 
 --------------------------------------------------------------------------------
 
-#### cv32e40p\_debug\_rom\_gen
+#### cv32e40px\_debug\_rom\_gen
 Description:<br>
 Enables core-v-verif custom debug rom, with config fetched from corev configuration object.
 
@@ -52,7 +52,7 @@ Enables core-v-verif custom debug rom, with config fetched from corev configurat
 
 --------------------------------------------------------------------------------
 
-#### cv32e40p\_illegal\_instr
+#### cv32e40px\_illegal\_instr
 Description:<br>
 Constrains illegal instruction generation from treating debug registers as non-implemented CSRs
 
@@ -66,7 +66,7 @@ Constrains illegal instruction generation from treating debug registers as non-i
 
 --------------------------------------------------------------------------------
 
-#### cv32e40p\_instr\_base\_test
+#### cv32e40px\_instr\_base\_test
 Description:<br>
 Enables class-wide overrides
 
@@ -87,9 +87,9 @@ Enables class-wide overrides
 
 --------------------------------------------------------------------------------
 
-#### cv32e40p\_instr\_gen\_config
+#### cv32e40px\_instr\_gen\_config
 Description:<br>
-Enables support for cv32e40p fast interrupt handlers and constrains mtvec to be properly aligned
+Enables support for cv32e40px fast interrupt handlers and constrains mtvec to be properly aligned
 Adds debug pointer to reserved registers and disallows certain combinations of debug plusargs.
 
 | Extends                  |
@@ -106,7 +106,7 @@ Adds debug pointer to reserved registers and disallows certain combinations of d
 
 --------------------------------------------------------------------------------
 
-#### cv32e40p\_instr\_test\_pkg
+#### cv32e40px\_instr\_test\_pkg
 
 Description:<br>
 Includes riscv-dv class override definitions and implements debug stack push/pop functions.
@@ -118,7 +118,7 @@ Includes riscv-dv class override definitions and implements debug stack push/pop
 
 --------------------------------------------------------------------------------
 
-#### cv32e40p\_privil\_reg
+#### cv32e40px\_privil\_reg
 
 Description:<br>
 Adds register definitions for MIE and MIP
@@ -129,13 +129,13 @@ Adds register definitions for MIE and MIP
 
 --------------------------------------------------------------------------------
 
-#### cv32e40p\_csr\_template.yaml
+#### cv32e40px\_csr\_template.yaml
 
 Description:<br>
 CSR definitions used for generating the csr test, see file header for details on usage.
 
 --------------------------------------------------------------------------------
-#### cv32e40p\_C\_LUI\_instr
+#### cv32e40px\_C\_LUI\_instr
 <!-- TODO: Remove this section when this fix has been upstreamed. -->
 
 Description:
@@ -161,7 +161,7 @@ as unsigned hex-values (0xffff...) instead.
 TODO Fix Upstreamed to riscv dv - this extension should no longer be needed
 if hash is updated
 --------------------------------------------------------------------------------
-#### cv32e40p\_privileged\_common\_seq
+#### cv32e40px\_privileged\_common\_seq
 extends:
 riscv\_privileged\_common\_seq
 overrides/adds:

@@ -22,7 +22,7 @@
 // values are taken raw, so signed and unsigned variants share the same bins. The hardware
 // loop CSRs and events are covered by uvme_rv32x_hwloop_covg.
 //
-// The RVFI ports carry what the cv32e40p decoder puts on them.
+// The RVFI ports carry what the cv32e40px decoder puts on them.
 // - rs2_rdata is the register of the rs2 field, meaningless for the immediate forms.
 // - rs3_rdata is port c, which reads the rd field. That is a third source for mac, macN,
 //   sdot, insert, addNr, shuffle2, packhi/lo and cplxmul, and the offset register of the
@@ -754,7 +754,7 @@ endgroup : cg_rv32x_simd
 
 class uvme_rv32x_isa_covg extends uvm_component;
 
-  uvme_cv32e40p_cfg_c cfg;
+  uvme_cv32e40px_cfg_c cfg;
 
   uvm_analysis_imp#(uvma_isacov_mon_trn_c, uvme_rv32x_isa_covg) mon_trn_export;
 
@@ -793,7 +793,7 @@ function void uvme_rv32x_isa_covg::build_phase(uvm_phase phase);
 
   super.build_phase(phase);
 
-  void'(uvm_config_db#(uvme_cv32e40p_cfg_c)::get(this, "", "cfg", cfg));
+  void'(uvm_config_db#(uvme_cv32e40px_cfg_c)::get(this, "", "cfg", cfg));
   if (cfg == null) begin
     `uvm_fatal("RV32XISACOVG", "Configuration handle is null")
   end
@@ -901,7 +901,7 @@ endfunction : build_scalar_cg
 function void uvme_rv32x_isa_covg::build_simd_cg();
 
   // The six variants of these operations (.h, .sc.h, .sci.h, .b, .sc.b, .sci.b) follow the
-  // .h one in rv32x_instr_name_t, as in uvme_cv32e40p_constants.sv
+  // .h one in rv32x_instr_name_t, as in uvme_cv32e40px_constants.sv
   rv32x_instr_name_t lanes_op[]    = '{CV_ADD_H, CV_SUB_H, CV_AVG_H, CV_AVGU_H, CV_MIN_H, CV_MINU_H,
                                        CV_MAX_H, CV_MAXU_H, CV_SRL_H, CV_SRA_H, CV_SLL_H,
                                        CV_OR_H, CV_XOR_H, CV_AND_H};
@@ -909,7 +909,7 @@ function void uvme_rv32x_isa_covg::build_simd_cg();
                                        CV_CMPGTU_H, CV_CMPGEU_H, CV_CMPLTU_H, CV_CMPLEU_H};
   rv32x_instr_name_t dot_op[]      = '{CV_DOTUP_H, CV_DOTUSP_H, CV_DOTSP_H};
   rv32x_instr_name_t sdot_op[]     = '{CV_SDOTUP_H, CV_SDOTUSP_H, CV_SDOTSP_H};
-  // The cv32e40p decoder zero-extends Imm6 of the .sci variant for these operations, takes
+  // The cv32e40px decoder zero-extends Imm6 of the .sci variant for these operations, takes
   // a shift amount of 4 (.h) or 3 (.b) bits for the shifts, and sign-extends it for the
   // others. The specification zero-extends the shift amount and the decoder sign-extends
   // it, which gives the same value because the upper Imm6 bits must be 0.

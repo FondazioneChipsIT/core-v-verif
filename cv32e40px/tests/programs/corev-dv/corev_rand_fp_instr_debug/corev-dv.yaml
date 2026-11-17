@@ -11,10 +11,10 @@ plusargs: >
     +instr_cnt=2000
     +num_of_sub_program=0
     +test_override_riscv_instr_stream=1
-    +directed_instr_0=cv32e40p_constraint_mc_fp_instr_stream,2
-    +directed_instr_1=cv32e40p_fp_op_fwd_instr_stream,2
-    +directed_instr_2=cv32e40p_fp_op_fwd_instr_w_loadstore_stream,2
-    +directed_instr_3=cv32e40p_fp_only_fdiv_fsqrt_stream,5
+    +directed_instr_0=cv32e40px_constraint_mc_fp_instr_stream,2
+    +directed_instr_1=cv32e40px_fp_op_fwd_instr_stream,2
+    +directed_instr_2=cv32e40px_fp_op_fwd_instr_w_loadstore_stream,2
+    +directed_instr_3=cv32e40px_fp_only_fdiv_fsqrt_stream,5
     +no_fence=0
     +hint_instr_ratio=2
     +no_data_page=0

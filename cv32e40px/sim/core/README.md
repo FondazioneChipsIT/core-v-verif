@@ -1,4 +1,4 @@
-Simulation Directory for CV32E40P Core Testbench
+Simulation Directory for CV32E40PX Core Testbench
 ================================================
 This is the directory in which you should run all tests of the Core Testbench.
 The testbench itself is located at `../../tb/core` and the test-programs are at
@@ -16,7 +16,7 @@ Note:
 
 RISC-V GCC Compiler "Toolchain"
 -------------------------------
-Pointers to the recommended toolchain for CV32E40P are in `../TOOLCHAIN`.
+Pointers to the recommended toolchain for CV32E40PX are in `../TOOLCHAIN`.
 
 Running the testbench with [verilator](https://www.veripool.org/wiki/verilator)
 ----------------------

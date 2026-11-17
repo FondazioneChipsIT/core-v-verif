@@ -561,7 +561,7 @@ riscof_sim_run: $(VSIM_RISCOF_SIM_PREREQ) comp_dut_rtl_riscof_sim gen_riscof_ovp
 			$(VSIM_FLAGS) \
 			-l vsim-$(TEST).log \
 			$(DPILIB_VSIM_OPT) \
-			+UVM_TESTNAME=uvmt_cv32e40p_riscof_firmware_test_c \
+			+UVM_TESTNAME=uvmt_$(CV_CORE_LC)_riscof_firmware_test_c \
 			$(RTLSRC_VOPT_TB_TOP) \
 			$(CFG_PLUSARGS) \
 			$(RISCOF_TEST_PLUSARGS) \
