@@ -13,10 +13,12 @@
 
 export SHELL = /bin/bash
 
-CV_CORE_REPO   ?= https://github.com/openhwgroup/cv32e40p
+# Tag v2.0.1 of FondazioneChipsIT/cv32e40p: the RTL of cv32e40p_v1.8.3 with the upstream fix of
+# a CSR access right after an FP load, and the RVFI tracer fixes.
+CV_CORE_REPO   ?= https://github.com/FondazioneChipsIT/cv32e40p
 CV_CORE_BRANCH ?= master
 CV_CORE_HASH   ?= head
-CV_CORE_TAG    ?= cv32e40p_v1.8.3
+CV_CORE_TAG    ?= v2.0.1
 
 # The CV_CORE_HASH above points to version of the RTL that is newer.
 # It is logically equivalent with respect to v1.0.0 RTL freeze version with all parameters disabled.

@@ -92,11 +92,10 @@ Limitations:
 - `cycle(h)`, `mcycle(h)`, `mip`, `mhpmcounter(h)3..31` and `hpmcounter(h)3..31` are volatile, so
   an instruction that reads one gets the value the RTL read. Loads from the virtual peripherals at
   `0x15001000` are volatile too.
-- The RVFI of the CV32E40P RTL (v1.8.3) does not follow a `cv.elw` through EX and WB, so
-  `pulp_cluster_elw_test` is compared with the model only on an RTL with that RVFI fix, not yet
-  upstream: the `mpaci/rvfi-fixes` branch of
-  [FondazioneChipsIT/cv32e40p](https://github.com/FondazioneChipsIT/cv32e40p/tree/mpaci/rvfi-fixes).
-  With the RTL alone it passes anyway.
+- The comparison needs fixes of the RVFI tracer that are not upstream yet, so the RTL comes from
+  [FondazioneChipsIT/cv32e40p](https://github.com/FondazioneChipsIT/cv32e40p), tag `v2.0.1`: the
+  RTL of `cv32e40p_v1.8.3` with the fixed tracer and the upstream fix of a CSR access right after
+  an FP load.
 - With `COV=YES` the ISA coverage comes from `uvma_isacov`.
 
 [cv32e40p/docs/GVSOC_REFERENCE_MODEL.md](../cv32e40p/docs/GVSOC_REFERENCE_MODEL.md) describes how
